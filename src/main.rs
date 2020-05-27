@@ -33,13 +33,12 @@ fn triangle<'a>(r: &'a[Edge], s: &'a[Edge], t: &'a[Edge]) ->
         let mut s_y = HashMap::new();
         // join s and r_a
         // s_y[b] is the residual relation s(b, z)
-        if let Some(r_a) = r_x.get(a) {
-            for (y, z) in s {
-                if r_a.contains(&y) {
-                    // zs points to s_y[y]
-                    let zs = s_y.entry(y).or_insert_with(HashSet::new);
-                    zs.insert(z);
-                }
+        let r_a = r_x.get(a).expect("t_x.x not found in r_x");
+        for (y, z) in s {
+            if r_a.contains(&y) {
+                // zs points to s_y[y]
+                let zs = s_y.entry(y).or_insert_with(HashSet::new);
+                zs.insert(z);
             }
         }
         // now we have hash-joined s and r_a, and s_y.keys = intersect(s.y, r_a.y)
