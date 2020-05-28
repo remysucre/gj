@@ -40,7 +40,7 @@ fn intersect(r: &[u32], s: &[u32]) -> Vec<u32> {
     }).collect()
 }
 
-fn triangle_sort(r: &Vec<(u32, Vec<u32>)>, s: &Vec<(u32, Vec<u32>)>, t: &Vec<(u32, Vec<u32>)>) ->
+fn triangle_sort(mut r: &[(u32, Vec<u32>)], s: &[(u32, Vec<u32>)], mut t: &[(u32, Vec<u32>)]) ->
     Vec<(Vertex, Vertex, Vertex)>
 {
     let mut result = vec![];
@@ -49,12 +49,17 @@ fn triangle_sort(r: &Vec<(u32, Vec<u32>)>, s: &Vec<(u32, Vec<u32>)>, t: &Vec<(u3
     let t_x: Vec<_> = t.into_iter().map(|(x, _)| *x).collect();
     let big_a = intersect(&r_x, &t_x);
     for a in big_a {
-        let r_a = &gallop(r, |(x, _)| x < &a)[0].1;
-        let t_a = &gallop(t, |(x, _)| x < &a)[0].1;
+        r = gallop(r, |(x, _)| x < &a);
+        let r_a = &r[0].1;
+        t = gallop(t, |(x, _)| x < &a);
+        let t_a = &t[0].1;
         let s_y: Vec<_> = s.into_iter().map(|(y, _)| *y).collect();
         let big_b = intersect(r_a, &s_y);
+        // NOTE this should reset s?
+        let mut s = s;
         for b in big_b {
-            let s_b = &gallop(s, |(y, _)| y < &b)[0].1;
+            s = gallop(s, |(y, _)| y < &b);
+            let s_b = &s[0].1;
             let big_c = intersect(s_b, t_a);
             for c in big_c {
                 result.push((a, b, c));
