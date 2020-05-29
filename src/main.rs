@@ -152,28 +152,7 @@ fn to_trie(r: &[(u32, u32)]) -> Vec<(u32, Vec<u32>)> {
 }
 
 fn main() {
-    // let mut es = vec![(1, 2), (2, 3), (3, 1)];
-    let mut r = vec![
-        (11, 21),
-        (11, 22),
-        (11, 23),
-        (12, 21),
-        (13, 21),
-    ];
-    let mut s = vec![
-        (21, 31),
-        (21, 32),
-        (21, 33),
-        (22, 31),
-        (23, 31),
-    ];
-    let mut t = vec![
-        (31, 11),
-        (31, 12),
-        (31, 13),
-        (32, 11),
-        (33, 11),
-    ];
+    let (mut r, mut s, mut t) = gen_worst_case_relations(3);
     let ts = triangle_hash(&r, &s, &t);
     println!("{:?}", ts);
 
@@ -183,4 +162,26 @@ fn main() {
     t.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
     let ts = triangle_sort(&to_trie(&r), &to_trie(&s), &to_trie(&t));
     println!("{:?}", ts);
+}
+
+fn gen_worst_case_relations(n: u32) -> (Vec<Edge>, Vec<Edge>, Vec<Edge>) {
+    assert!(n > 0);
+    let x: Vec<_> = (0..n).collect();
+    let y: Vec<_> = (n..2*n).collect();
+    let z: Vec<_> = (2*n..3*n).collect();
+
+    let mut r = vec![];
+    let mut s = vec![];
+    let mut t = vec![];
+    for i in 0..n as usize {
+        r.push((x[0], y[i]));
+        s.push((y[0], z[i]));
+        t.push((z[0], x[i]));
+    }
+    for i in 1..n as usize {
+        r.push((x[i], y[0]));
+        s.push((y[i], z[0]));
+        t.push((z[i], x[0]));
+    }
+    (r, s, t)
 }
