@@ -49,7 +49,7 @@ fn intersect(r: &[u32], s: &[u32]) -> Vec<u32> {
     }
     r.into_iter().flat_map(|x| {
         let t = gallop(s, |y| y < x );
-        if t[0] == *x { Some(*x) } else { None }
+        if !t.is_empty() && t[0] == *x { Some(*x) } else { None }
     }).collect()
 }
 
@@ -152,14 +152,35 @@ fn to_trie(r: &[(u32, u32)]) -> Vec<(u32, Vec<u32>)> {
 }
 
 fn main() {
-    let mut es = vec![];
-    triangle_hash(&es, &es, &es);
-    // Q(x,y,z) = R(x, y), S(y, z), T(z, x)
-    // variable order: x, y, z
-    es.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
-    let r = &es;
-    let s = &es;
-    let mut t: Vec<(u32, u32)> = es.iter().map(|(x, y)| (*y, *x)).collect();
+    // let mut es = vec![(1, 2), (2, 3), (3, 1)];
+    let mut r = vec![
+        (11, 21),
+        (11, 22),
+        (11, 23),
+        (12, 21),
+        (13, 21),
+    ];
+    let mut s = vec![
+        (21, 31),
+        (21, 32),
+        (21, 33),
+        (22, 31),
+        (23, 31),
+    ];
+    let mut t = vec![
+        (31, 11),
+        (31, 12),
+        (31, 13),
+        (32, 11),
+        (33, 11),
+    ];
+    let ts = triangle_hash(&r, &s, &t);
+    println!("{:?}", ts);
+
+    r.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+    s.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+    t = t.into_iter().map(|(x, y)| (y, x)).collect();
     t.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
-    triangle_sort(&to_trie(r), &to_trie(s), &to_trie(&t));
+    let ts = triangle_sort(&to_trie(&r), &to_trie(&s), &to_trie(&t));
+    println!("{:?}", ts);
 }
