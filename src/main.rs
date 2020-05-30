@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::time::Instant;
 
 // Taken from Frank McSherry's blog Worst-case optimal joins, in dataflow
 // advances slice to the first element not less than value
@@ -130,13 +131,79 @@ fn triangle_hash<'a>(r: &'a[Edge], s: &'a[Edge], t: &'a[Edge]) ->
         // now we have hash-joined s and r_a, and s_y.keys = intersect(s.y, r_a.y)
         for (b, s_b) in s_y.iter() {
             // intersect s_b.z and t_a.z
-            for c in s_b.intersection(&t_a) {
+            for c in s_b.intersection(t_a) {
                 result.push((*a, *b, *c));
             }
         }
     }
     result
 }
+
+// this version builds a hashmap for s on y to save some scans
+fn triangle_hash_alt<'a>(r: &'a[Edge], s: &'a[Edge], t: &'a[Edge]) ->
+    Vec<(&'a Vertex, &'a Vertex, &'a Vertex)>
+{
+    // hash r on x to be joined with t
+    // r_x[a] is the residual relation r(a, y)
+    let mut r_x = HashMap::new();
+    for (x, y) in r {
+        // ys points to r_x[x]
+        let ys = r_x.entry(x).or_insert_with(HashSet::new);
+        ys.insert(y);
+    }
+    // hash-join t with r on x
+    // t_x[a] is the residual relation t(z, a)
+    let mut t_x = HashMap::new();
+    for (z, x) in t {
+        if r_x.contains_key(&x) {
+            // zs points to t_x(x)
+            let zs = t_x.entry(x).or_insert_with(HashSet::new);
+            zs.insert(z);
+        }
+    }
+
+    // build hashmap for s on y
+    let mut s_y = HashMap::new();
+    let mut s_y_keys = HashSet::new();
+    for (y, z) in s {
+        let zs = s_y.entry(y).or_insert_with(HashSet::new);
+        zs.insert(z);
+        s_y_keys.insert(y);
+    }
+
+    let mut result = vec![];
+    // now we have hash-joined r and t, and t_x.keys = intersect(r.x, t.x)
+    for (a, t_a) in t_x.iter() {
+        // join s and r_a
+        // s_y[b] is the residual relation s(b, z)
+        let r_a = r_x.get(a).expect("t_x.x not found in r_x");
+        for b in r_a.intersection(&s_y_keys) {
+            for c in s_y[b].intersection(t_a) {
+                result.push((*a, *b, *c));
+            }
+        }
+    }
+    result
+}
+
+// this version takes hash indexes for r, s, t
+fn triangle_hash_index(
+    r: HashMap<Vertex, HashSet<Vertex>>, rks: HashSet<Vertex>,
+    s: HashMap<Vertex, HashSet<Vertex>>, sks: HashSet<Vertex>,
+    t: HashMap<Vertex, HashSet<Vertex>>, tks: HashSet<Vertex>,
+) -> Vec<(Vertex, Vertex, Vertex)>
+{
+    let mut result = vec![];
+    for a in rks.intersection(&tks) {
+        for b in r[a].intersection(&sks) {
+            for c in s[b].intersection(&t[a]) {
+                result.push((*a, *b, *c));
+            }
+        }
+    }
+    result
+}
+
 
 // NOTE should be sorted
 fn to_trie(r: &[(u32, u32)]) -> Vec<(u32, Vec<u32>)> {
@@ -152,16 +219,65 @@ fn to_trie(r: &[(u32, u32)]) -> Vec<(u32, Vec<u32>)> {
 }
 
 fn main() {
-    let (mut r, mut s, mut t) = gen_worst_case_relations(3);
-    let ts = triangle_hash(&r, &s, &t);
-    println!("{:?}", ts);
+    let args: Vec<String> = std::env::args().collect();
+    let n = args[1].parse().unwrap();
+    let (mut r, mut s, mut t) = gen_worst_case_relations(n);
 
+    // hash-gj without index
+    // println!("hash-join starting");
+    // let now = Instant::now();
+    // let ts = triangle_hash_alt(&r, &s, &t);
+    // let ts_h_len = ts.len();
+    // println!("hash-join: {}", now.elapsed().as_millis());
+
+    // hash-gj with index
+    let mut r_x = HashMap::new();
+    for (x, y) in r.iter().copied() {
+        let ys = r_x.entry(x).or_insert_with(HashSet::new);
+        ys.insert(y);
+    }
+    let rks: HashSet<u32> = r_x.keys().copied().collect();
+
+    let mut t_x = HashMap::new();
+    for (z, x) in t.iter().copied() {
+        let zs = t_x.entry(x).or_insert_with(HashSet::new);
+        zs.insert(z);
+    }
+    let tks: HashSet<u32> = t_x.keys().copied().collect();
+
+    let mut s_y = HashMap::new();
+    for (y, z) in s.iter().copied() {
+        let zs = s_y.entry(y).or_insert_with(HashSet::new);
+        zs.insert(z);
+    }
+    let sks: HashSet<u32> = s_y.keys().copied().collect();
+
+    println!("hash-join starting");
+    let now = Instant::now();
+    let ts = triangle_hash_index(
+        r_x, rks,
+        s_y, sks,
+        t_x, tks,
+    );
+    let ts_h_len = ts.len();
+    println!("hash-join: {}", now.elapsed().as_millis());
+
+    // sort-gj with tries
     r.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+    let r_t = to_trie(&r);
     s.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+    let s_t = to_trie(&s);
     t = t.into_iter().map(|(x, y)| (y, x)).collect();
     t.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
-    let ts = triangle_sort(&to_trie(&r), &to_trie(&s), &to_trie(&t));
-    println!("{:?}", ts);
+    let t_t = to_trie(&t);
+
+    println!("sort-join starting");
+    let now = Instant::now();
+    let ts_s = triangle_sort(&r_t, &s_t, &t_t);
+    let ts_s_len = ts_s.len();
+    println!("sort-join: {}", now.elapsed().as_millis());
+    assert_eq!(ts_h_len, ts_s_len);
+    // println!("{:?}", ts);
 }
 
 fn gen_worst_case_relations(n: u32) -> (Vec<Edge>, Vec<Edge>, Vec<Edge>) {
