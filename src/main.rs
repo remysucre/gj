@@ -218,56 +218,80 @@ fn to_trie(r: &[(u32, u32)]) -> Vec<(u32, Vec<u32>)> {
     result
 }
 
+fn read_edges() -> Result<Vec<(u32, u32)>, Box<dyn std::error::Error>> {
+    use csv::ReaderBuilder;
+    // Build the CSV reader and iterate over each record.
+    let mut rdr = ReaderBuilder::new()
+        .delimiter(b'\t')
+        .from_reader(std::io::stdin());
+    let mut es = vec![];
+    for result in rdr.records() {
+        // The iterator yields Result<StringRecord, Error>, so we check the
+        // error here.
+        let record = result?;
+        let (u, v) = (record[0].to_owned(), record[1].to_owned());
+        es.push((u.parse().unwrap(), v.parse().unwrap()));
+    }
+    Ok(es)
+}
+
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    let n = args[1].parse().unwrap();
-    let (mut r, mut s, mut t) = gen_worst_case_relations(n);
+    // let args: Vec<String> = std::env::args().collect();
+    // let n = args[1].parse().unwrap();
+    // let (mut r, mut s, mut t) = gen_worst_case_relations(n);
 
-    // hash-gj without index
-    // println!("hash-join starting");
-    // let now = Instant::now();
-    // let ts = triangle_hash_alt(&r, &s, &t);
-    // let ts_h_len = ts.len();
-    // println!("hash-join: {}", now.elapsed().as_millis());
+    let mut es = read_edges().unwrap();
+    let ts_h_len;
+    {
+        let r = &es;
+        let s = &es;
+        let t = &es;
 
-    // hash-gj with index
-    let mut r_x = HashMap::new();
-    for (x, y) in r.iter().copied() {
-        let ys = r_x.entry(x).or_insert_with(HashSet::new);
-        ys.insert(y);
+        // hash-gj without index
+        // println!("hash-join starting");
+        // let now = Instant::now();
+        // let ts = triangle_hash_alt(&r, &s, &t);
+        // let ts_h_len = ts.len();
+        // println!("hash-join: {}", now.elapsed().as_millis());
+
+        // hash-gj with index
+        let mut r_x = HashMap::new();
+        for (x, y) in r.iter().copied() {
+            let ys = r_x.entry(x).or_insert_with(HashSet::new);
+            ys.insert(y);
+        }
+        let rks: HashSet<u32> = r_x.keys().copied().collect();
+
+        let mut t_x = HashMap::new();
+        for (z, x) in t.iter().copied() {
+            let zs = t_x.entry(x).or_insert_with(HashSet::new);
+            zs.insert(z);
+        }
+        let tks: HashSet<u32> = t_x.keys().copied().collect();
+
+        let mut s_y = HashMap::new();
+        for (y, z) in s.iter().copied() {
+            let zs = s_y.entry(y).or_insert_with(HashSet::new);
+            zs.insert(z);
+        }
+        let sks: HashSet<u32> = s_y.keys().copied().collect();
+
+        println!("hash-join starting");
+        let now = Instant::now();
+        let ts = triangle_hash_index(
+            r_x, rks,
+            s_y, sks,
+            t_x, tks,
+        );
+        ts_h_len = ts.len();
+        println!("hash-join: {}", now.elapsed().as_millis());
     }
-    let rks: HashSet<u32> = r_x.keys().copied().collect();
-
-    let mut t_x = HashMap::new();
-    for (z, x) in t.iter().copied() {
-        let zs = t_x.entry(x).or_insert_with(HashSet::new);
-        zs.insert(z);
-    }
-    let tks: HashSet<u32> = t_x.keys().copied().collect();
-
-    let mut s_y = HashMap::new();
-    for (y, z) in s.iter().copied() {
-        let zs = s_y.entry(y).or_insert_with(HashSet::new);
-        zs.insert(z);
-    }
-    let sks: HashSet<u32> = s_y.keys().copied().collect();
-
-    println!("hash-join starting");
-    let now = Instant::now();
-    let ts = triangle_hash_index(
-        r_x, rks,
-        s_y, sks,
-        t_x, tks,
-    );
-    let ts_h_len = ts.len();
-    println!("hash-join: {}", now.elapsed().as_millis());
-
     // sort-gj with tries
-    r.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
-    let r_t = to_trie(&r);
-    s.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
-    let s_t = to_trie(&s);
-    t = t.into_iter().map(|(x, y)| (y, x)).collect();
+    es.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+    let r_t = to_trie(&es);
+    // s.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+    let s_t = to_trie(&es);
+    let mut t: Vec<_> = es.into_iter().map(|(x, y)| (y, x)).collect();
     t.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
     let t_t = to_trie(&t);
 
@@ -277,7 +301,7 @@ fn main() {
     let ts_s_len = ts_s.len();
     println!("sort-join: {}", now.elapsed().as_millis());
     assert_eq!(ts_h_len, ts_s_len);
-    // println!("{:?}", ts);
+    // println!("{:?}", ts_h_len);
 }
 
 fn gen_worst_case_relations(n: u32) -> (Vec<Edge>, Vec<Edge>, Vec<Edge>) {
