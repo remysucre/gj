@@ -1,28 +1,29 @@
 // Generate worst-case graph. See slide #13 of Hung Ngo's talk "Worst-case
 // optimal join algorithms: techniques, results, and open problems"
 // http://www.cse.buffalo.edu/~hungngo/papers/wcoj-gems.pptx
-pub fn gen_worst_case_relations(n: u32) ->
-    (Vec<(u32, u32)>, Vec<(u32, u32)>, Vec<(u32, u32)>)
-{
+
+type Rel = Vec<(u32, u32)>;
+
+pub fn gen_worst_case_relations(n: u32) -> (Rel, Rel, Rel) {
     assert!(n > 0);
     // 3N nodes
-    let x: Vec<_> = (0..n).collect();
-    let y: Vec<_> = (n..2*n).collect();
-    let z: Vec<_> = (2*n..3*n).collect();
+    let xs: Vec<_> = (0..n).collect();
+    let ys: Vec<_> = (n..2 * n).collect();
+    let zs: Vec<_> = (2 * n..3 * n).collect();
 
     // The edges
     let mut r = vec![];
     let mut s = vec![];
     let mut t = vec![];
     for i in 0..n as usize {
-        r.push((x[0], y[i]));
-        s.push((y[0], z[i]));
-        t.push((z[0], x[i]));
+        r.push((xs[0], ys[i]));
+        s.push((ys[0], zs[i]));
+        t.push((zs[0], xs[i]));
     }
     for i in 1..n as usize {
-        r.push((x[i], y[0]));
-        s.push((y[i], z[0]));
-        t.push((z[i], x[0]));
+        r.push((xs[i], ys[0]));
+        s.push((ys[i], zs[0]));
+        t.push((zs[i], xs[0]));
     }
 
     // Graph with 3 "typed" sets of edges
@@ -38,10 +39,7 @@ pub fn read_edges() -> Result<Vec<(u32, u32)>, Box<dyn std::error::Error>> {
     let mut es = vec![];
     for rec in rdr.records() {
         let record = rec?;
-        es.push((
-            record[0].parse().unwrap(),
-            record[1].parse().unwrap()
-        ));
+        es.push((record[0].parse().unwrap(), record[1].parse().unwrap()));
     }
     Ok(es)
 }

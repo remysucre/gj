@@ -1,26 +1,26 @@
 // Taken from Frank McSherry's blog Worst-case optimal joins, in dataflow
 // advances slice to the first element not less than value
-pub fn gallop<T>(mut slice: &[T], mut cmp: impl FnMut(&T)->bool) -> &[T] {
+pub fn gallop<T>(mut slice: &[T], mut cmp: impl FnMut(&T) -> bool) -> &[T] {
     // if empty slice, or already >= element, return
-    if slice.len() > 0 && cmp(&slice[0]) {
+    if !slice.is_empty() && cmp(&slice[0]) {
         let mut step = 1;
         while step < slice.len() && cmp(&slice[step]) {
             slice = &slice[step..];
-            step = step << 1;
+            step <<= 1;
         }
 
-        step = step >> 1;
+        step >>= 1;
         while step > 0 {
             if step < slice.len() && cmp(&slice[step]) {
                 slice = &slice[step..];
             }
-            step = step >> 1;
+            step >>= 1;
         }
 
         slice = &slice[1..]; // advance one, as we always stayed < value
     }
 
-    return slice;
+    slice
 }
 
 fn sorted(s: &[u32]) -> bool {
@@ -42,19 +42,29 @@ fn intersect(r: &[u32], s: &[u32]) -> Vec<u32> {
     if r.len() > s.len() {
         std::mem::swap(&mut r, &mut s);
     }
-    r.into_iter().flat_map(|x| {
-        let t = gallop(s, |y| y < x );
-        if !t.is_empty() && t[0] == *x { Some(*x) } else { None }
-    }).collect()
+    r.iter()
+        .flat_map(|x| {
+            let t = gallop(s, |y| y < x);
+            if !t.is_empty() && t[0] == *x {
+                Some(*x)
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
-pub fn triangle_sort_cnt(mut r: &[(u32, Vec<u32>)], s: &[(u32, Vec<u32>)], mut t: &[(u32, Vec<u32>)]) -> u32
-{
-    let mut result = 0;
+pub fn triangle_sort<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
+    mut r: &[(u32, Vec<u32>)],
+    s: &[(u32, Vec<u32>)],
+    mut t: &[(u32, Vec<u32>)],
+    agg: F,
+) -> R {
+    let mut result = R::default();
 
-    let r_x: Vec<_> = r.into_iter().map(|(x, _)| *x).collect();
-    let t_x: Vec<_> = t.into_iter().map(|(x, _)| *x).collect();
-    let s_y: Vec<_> = s.into_iter().map(|(y, _)| *y).collect();
+    let r_x: Vec<_> = r.iter().map(|(x, _)| *x).collect();
+    let t_x: Vec<_> = t.iter().map(|(x, _)| *x).collect();
+    let s_y: Vec<_> = s.iter().map(|(y, _)| *y).collect();
 
     let big_a = intersect(&r_x, &t_x);
     for a in big_a {
@@ -75,7 +85,7 @@ pub fn triangle_sort_cnt(mut r: &[(u32, Vec<u32>)], s: &[(u32, Vec<u32>)], mut t
             debug_assert_eq!(&s_[0].0, &b);
             let big_c = intersect(s_b, t_a);
             for c in big_c {
-                result += 1;
+                agg(&mut result, (a, b, c))
             }
         }
     }
