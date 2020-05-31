@@ -54,6 +54,41 @@ fn intersect(r: &[u32], s: &[u32]) -> Vec<u32> {
     }).collect()
 }
 
+fn triangle_sort_cnt(mut r: &[(u32, Vec<u32>)], s: &[(u32, Vec<u32>)], mut t: &[(u32, Vec<u32>)]) -> u32
+{
+    let mut result = 0;
+
+    let r_x: Vec<_> = r.into_iter().map(|(x, _)| *x).collect();
+    let t_x: Vec<_> = t.into_iter().map(|(x, _)| *x).collect();
+    let s_y: Vec<_> = s.into_iter().map(|(y, _)| *y).collect();
+
+    let big_a = intersect(&r_x, &t_x);
+    for a in big_a {
+        r = gallop(r, |(x, _)| x < &a);
+        let r_a = &r[0].1;
+        debug_assert_eq!(&r[0].0, &a);
+
+        let big_b = intersect(r_a, &s_y);
+        t = gallop(t, |(x, _)| x < &a);
+        let t_a = &t[0].1;
+        debug_assert_eq!(&t[0].0, &a);
+
+        // NOTE this should reset s
+        let mut s_ = s;
+        for b in big_b {
+            s_ = gallop(s_, |(y, _)| y < &b);
+            let s_b = &s_[0].1;
+            debug_assert_eq!(&s_[0].0, &b);
+            let big_c = intersect(s_b, t_a);
+            for c in big_c {
+                result += 1;
+            }
+        }
+    }
+    result
+}
+
+
 fn triangle_sort(mut r: &[(u32, Vec<u32>)], s: &[(u32, Vec<u32>)], mut t: &[(u32, Vec<u32>)]) ->
     Vec<(Vertex, Vertex, Vertex)>
 {
@@ -204,6 +239,22 @@ fn triangle_hash_index(
     result
 }
 
+fn triangle_hash_index_cnt(
+    r: HashMap<Vertex, HashSet<Vertex>>, rks: HashSet<Vertex>,
+    s: HashMap<Vertex, HashSet<Vertex>>, sks: HashSet<Vertex>,
+    t: HashMap<Vertex, HashSet<Vertex>>, tks: HashSet<Vertex>,
+) -> u32
+{
+    let mut result = 0;
+    for a in rks.intersection(&tks) {
+        for b in r[a].intersection(&sks) {
+            for _c in s[b].intersection(&t[a]) {
+                result += 1;
+            }
+        }
+    }
+    result
+}
 
 // NOTE should be sorted
 fn to_trie(r: &[(u32, u32)]) -> Vec<(u32, Vec<u32>)> {
@@ -241,7 +292,7 @@ fn main() {
     // let (mut r, mut s, mut t) = gen_worst_case_relations(n);
 
     let mut es = read_edges().unwrap();
-    let ts_h_len;
+    let ts_h;
     {
         let r = &es;
         let s = &es;
@@ -278,12 +329,12 @@ fn main() {
 
         println!("hash-join starting");
         let now = Instant::now();
-        let ts = triangle_hash_index(
+        ts_h = triangle_hash_index_cnt(
             r_x, rks,
             s_y, sks,
             t_x, tks,
         );
-        ts_h_len = ts.len();
+        // ts_h_len = ts.len();
         println!("hash-join: {}", now.elapsed().as_millis());
     }
     // sort-gj with tries
@@ -297,11 +348,11 @@ fn main() {
 
     println!("sort-join starting");
     let now = Instant::now();
-    let ts_s = triangle_sort(&r_t, &s_t, &t_t);
-    let ts_s_len = ts_s.len();
+    let ts_s = triangle_sort_cnt(&r_t, &s_t, &t_t);
+    // let ts_s_len = ts_s.len();
     println!("sort-join: {}", now.elapsed().as_millis());
-    assert_eq!(ts_h_len, ts_s_len);
-    // println!("{:?}", ts_h_len);
+    assert_eq!(ts_h, ts_s);
+    println!("{:?}", ts_h);
 }
 
 fn gen_worst_case_relations(n: u32) -> (Vec<Edge>, Vec<Edge>, Vec<Edge>) {
