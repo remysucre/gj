@@ -5,8 +5,47 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let n = args[1].parse().unwrap();
 
-    worst_case(n)
+    on_the_fly(n)
+    // worst_case(n)
     // live_journal(n)
+}
+
+pub fn on_the_fly(n: u32) {
+
+    let mut es = read_edges(n as usize).unwrap();
+    let (ts_h, ts_s);
+
+    // Hash-based generic join
+    {
+        use relation::*;
+
+        let t: Vec<_> = es.iter().copied().map(|(x, y)| (y, x)).collect();
+        println!("hash-join starting");
+        let now = Instant::now();
+        ts_h = triangle_hash(&es, &es, &t, |result: &mut u32, _| {
+            *result += 1
+        });
+        println!("hash-join: {}", now.elapsed().as_millis());
+    }
+
+    // Sort-based generic join
+    {
+        use gj::sorted::*;
+        // sort-gj with tries
+        es.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        let r_t = to_trie(&es);
+        let s_t = r_t.clone();
+        let mut t: Vec<_> = es.into_iter().map(|(x, y)| (y, x)).collect();
+        t.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        let t_t = to_trie(&t);
+
+        println!("sort-join starting");
+        let now = Instant::now();
+        ts_s = triangle_index(&r_t, &s_t, &t_t, |n: &mut u32, _| *n += 1);
+        println!("sort-join: {}", now.elapsed().as_millis());
+    }
+    assert_eq!(ts_h, ts_s);
+    println!("{:?}", ts_h);
 }
 
 pub fn worst_case(n: u32) {

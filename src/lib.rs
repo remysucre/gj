@@ -8,25 +8,46 @@ pub mod relation {
     type HashMap<K, V> = std::collections::HashMap<
             K, V, std::hash::BuildHasherDefault<SeaHasher>>;
 
-    pub trait IdxRel<Res: 'static> {
+    pub trait IdxRel {
+        type Res: 'static;
 
-        fn create<'a>(r: impl Iterator<Item = &'a (u32, Res)>) -> Self;
+        fn create(r: impl Iterator<Item = (u32, Self::Res)>) -> Self;
 
         fn len(&self) -> usize;
 
-        fn get(&self, a: u32) -> Option<&Vec<Res>>;
+        fn get(&self, a: u32) -> Option<&Vec<Self::Res>>;
 
         fn intersect
-            <'a, ORes: 'static>
-            (&'a self, other: &'a impl IdxRel<ORes>) ->
-            Box<dyn Iterator<Item = (&'a u32, &'a Vec<Res>, &'a Vec<ORes>)> + 'a>;
+            <'a, O: IdxRel>
+            (&'a self, other: &'a O) ->
+            Box<dyn Iterator<Item = (&'a u32, &'a Vec<Self::Res>, &'a Vec<O::Res>)> + 'a>;
     }
 
-    impl<Res: 'static + Copy> IdxRel<Res> for HashMap<u32, Vec<Res>> {
+    impl<R: 'static + Copy> IdxRel for HashMap<u32, Vec<R>> {
+        type Res = R;
+
+        fn len(&self) -> usize {
+            self.keys().len()
+        }
+
+        fn get(&self, a: u32) -> Option<&Vec<Self::Res>> {
+            self.get(&a)
+        }
+
+        fn create(r: impl Iterator<Item = (u32, Self::Res)>) -> Self
+        {
+            let mut r_x = HashMap::default();
+            for (x, y) in r {
+                let ys = r_x.entry(x).or_insert_with(Vec::new);
+                ys.push(y);
+            }
+            r_x
+        }
+
         fn intersect
-            <'a, ORes: 'static>
-            (&'a self, other: &'a impl IdxRel<ORes>) ->
-            Box<dyn Iterator<Item = (&'a u32, &'a Vec<Res>, &'a Vec<ORes>)> + 'a>
+            <'a, O: IdxRel>
+            (&'a self, other: &'a O) ->
+            Box<dyn Iterator<Item = (&'a u32, &'a Vec<Self::Res>, &'a Vec<O::Res>)> + 'a>
         {
             if self.len() <= other.len() {
                 Box::new(self.iter().filter_map(move |(a, y)| {
@@ -37,68 +58,54 @@ pub mod relation {
             }
         }
 
-        fn len(&self) -> usize {
-            self.keys().len()
-        }
-
-        fn get(&self, a: u32) -> Option<&Vec<Res>> {
-            self.get(&a)
-        }
-
-        fn create<'a>(r: impl Iterator<Item = &'a (u32, Res)>) -> Self
-        {
-            let mut r_x = HashMap::default();
-            for (x, y) in r.copied() {
-                let ys = r_x.entry(x).or_insert_with(Vec::new);
-                ys.push(y);
-            }
-            r_x
-        }
     }
 
-    // pub fn triangle<'a, R: Default, F: Fn(&mut R, (&u32, &u32, &u32))>(
-    //     r: &'a [(u32, u32)],
-    //     s: &'a [(u32, u32)],
-    //     t: &'a [(u32, u32)],
-    //     agg: F,
-    // ) -> R {
-    //     let r_x =
-    //
-    //     let mut r_x = HashMap::default();
+    pub fn triangle<'a, Rx, Ry, Sy, Sz, Tz, Tx, O, F>(
+        r: &'a [(u32, u32)],
+        s: &'a [(u32, u32)],
+        t: &'a [(u32, u32)],
+        agg: F,
+    ) -> O
+    where
+        Rx: IdxRel<Res = u32>,
+        Ry: IdxRel<Res = ()>,
+        Sy: IdxRel<Res = u32>,
+        Sz: IdxRel<Res = ()>,
+        Tz: IdxRel<Res = ()>,
+        Tx: IdxRel<Res = u32>,
+        O: Default,
+        F: Fn(&mut O, (&u32, &u32, &u32)),
+    {
+        let mut result = O::default();
+        let r_x = Rx::create(r.iter().copied());
+        let t_x = Tx::create(t.iter().copied());
+        let s_y = Sy::create(s.iter().copied());
+        for (a, ra, _ta) in r_x.intersect(&t_x) {
+            let ra_y = Ry::create(ra.iter().copied().map(|n| (n, ())));
+            let ta_z = Tz::create(t_x.get(*a).unwrap_or(&vec![]).iter().copied().map(|n| (n, ())));
+            for (b, sb, _rab) in s_y.intersect(&ra_y) {
+                let sb_z = Sz::create(sb.iter().copied().map(|n| (n, ())));
+                for (c, _sbc, _tac) in sb_z.intersect(&ta_z) {
+                    agg(&mut result, (a, b, c));
+                }
+            }
+        }
+        result
+    }
 
-    //     for (x, y) in r {
-    //         let ys = r_x.entry(x).or_insert_with(HashSet::default);
-    //         ys.insert(y);
-    //     }
-    //     // hash-join t with r on x
-    //     // t_x[a] is the residual relation t(z, a)
-    //     let mut t_x = HashMap::default();
-    //     for (z, x) in t {
-    //         if r_x.contains_key(&x) {
-    //             let zs = t_x.entry(x).or_insert_with(HashSet::default);
-    //             zs.insert(z);
-    //         }
-    //     }
-    //     // building this hash outside the loop
-    //     let mut s_y = HashMap::default();
-    //     let mut s_y_keys = HashSet::default();
-    //     for (y, z) in s {
-    //         let zs = s_y.entry(y).or_insert_with(HashSet::default);
-    //         zs.insert(z);
-    //         s_y_keys.insert(y);
-    //     }
-    //     let mut result = R::default();
-    //     // now we have hash-joined r and t, and t_x.keys = intersect(r.x, t.x)
-    //     for (a, t_a) in t_x.iter() {
-    //         let r_a = r_x.get(a).expect("t_x.x not found in r_x");
-    //         // join s and r_a
-    //         // s_y[b] is the residual relation s(b, z)
-    //         for b in r_a.intersection(&s_y_keys) {
-    //             for c in s_y[b].intersection(t_a) {
-    //                 agg(&mut result, (*a, *b, *c));
-    //             }
-    //         }
-    //     }
-    //     result
-    // }
+    pub fn triangle_hash<'a, R: Default, F: Fn(&mut R, (&u32, &u32, &u32))>(
+    r: &'a [(u32, u32)],
+    s: &'a [(u32, u32)],
+    t: &'a [(u32, u32)],
+    agg: F,
+    ) -> R {
+        triangle::
+        <HashMap<u32, Vec<u32>>,
+         HashMap<u32, Vec<()>>,
+         HashMap<u32, Vec<u32>>,
+         HashMap<u32, Vec<()>>,
+         HashMap<u32, Vec<()>>,
+         HashMap<u32, Vec<u32>>,
+         R, F>(r, s, t, agg)
+    }
 }
