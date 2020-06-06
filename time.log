@@ -1,0 +1,33 @@
+START EXPERIMENT
+Fri Jun 5 14:53:25 PDT 2020
+6000000
+hash-join starting
+hash-join: 11574
+sort-join starting
+sort-join: 3180
+17999998
+7000000
+hash-join starting
+hash-join: 13717
+sort-join starting
+sort-join: 3704
+20999998
+8000000
+hash-join starting
+hash-join: 16235
+sort-join starting
+sort-join: 4251
+23999998
+9000000
+hash-join starting
+hash-join: 18405
+sort-join starting
+sort-join: 4863
+26999998
+10000000
+hash-join starting
+hash-join: 20969
+sort-join starting
+sort-join: 5353
+29999998
+END EXPERIMENT

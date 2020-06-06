@@ -1,0 +1,235 @@
+START EXPERIMENT
+Tue Jun 2 12:37:08 PDT 2020
+1000000
+START EXPERIMENT
+Tue Jun 2 12:42:37 PDT 2020
+1000000
+hash-join starting
+hash-join: 2163
+sort-join starting
+sort-join: 547
+2999998
+hash-join starting
+hash-join: 2235
+sort-join starting
+sort-join: 534
+2999998
+hash-join starting
+hash-join: 2241
+sort-join starting
+sort-join: 541
+2999998
+hash-join starting
+hash-join: 2299
+sort-join starting
+sort-join: 540
+2999998
+hash-join starting
+hash-join: 2168
+sort-join starting
+sort-join: 558
+2999998
+hash-join starting
+hash-join: 2136
+sort-join starting
+sort-join: 543
+2999998
+hash-join starting
+hash-join: 2201
+sort-join starting
+sort-join: 538
+2999998
+hash-join starting
+hash-join: 2213
+sort-join starting
+sort-join: 558
+2999998
+hash-join starting
+hash-join: 2148
+sort-join starting
+sort-join: 529
+2999998
+hash-join starting
+hash-join: 2181
+sort-join starting
+sort-join: 545
+2999998
+2000000
+hash-join starting
+hash-join: 5079
+sort-join starting
+sort-join: 1058
+5999998
+hash-join starting
+hash-join: 5589
+sort-join starting
+sort-join: 1100
+5999998
+hash-join starting
+hash-join: 5037
+sort-join starting
+sort-join: 1071
+5999998
+hash-join starting
+hash-join: 5135
+sort-join starting
+sort-join: 1080
+5999998
+hash-join starting
+hash-join: 5174
+sort-join starting
+sort-join: 1087
+5999998
+hash-join starting
+hash-join: 5231
+sort-join starting
+sort-join: 1105
+5999998
+hash-join starting
+hash-join: 4875
+sort-join starting
+sort-join: 1079
+5999998
+hash-join starting
+hash-join: 5052
+sort-join starting
+sort-join: 1102
+5999998
+hash-join starting
+hash-join: 5215
+sort-join starting
+sort-join: 1102
+5999998
+hash-join starting
+hash-join: 5086
+sort-join starting
+sort-join: 1071
+5999998
+3000000
+hash-join starting
+hash-join: 7638
+sort-join starting
+sort-join: 1657
+8999998
+hash-join starting
+hash-join: 7861
+sort-join starting
+sort-join: 1696
+8999998
+hash-join starting
+hash-join: 7700
+sort-join starting
+sort-join: 1614
+8999998
+hash-join starting
+hash-join: 7386
+sort-join starting
+sort-join: 1677
+8999998
+hash-join starting
+hash-join: 7677
+sort-join starting
+sort-join: 1635
+8999998
+hash-join starting
+hash-join: 7621
+sort-join starting
+sort-join: 1624
+8999998
+hash-join starting
+hash-join: 7609
+sort-join starting
+sort-join: 1649
+8999998
+hash-join starting
+hash-join: 7621
+sort-join starting
+sort-join: 1638
+8999998
+hash-join starting
+hash-join: 8176
+sort-join starting
+sort-join: 1659
+8999998
+hash-join starting
+hash-join: 7957
+sort-join starting
+sort-join: 1660
+8999998
+4000000
+hash-join starting
+hash-join: 12268
+sort-join starting
+sort-join: 2140
+11999998
+hash-join starting
+hash-join: 11123
+sort-join starting
+sort-join: 2175
+11999998
+hash-join starting
+hash-join: 11141
+sort-join starting
+sort-join: 2168
+11999998
+hash-join starting
+hash-join: 11269
+sort-join starting
+sort-join: 2168
+11999998
+hash-join starting
+hash-join: 11161
+sort-join starting
+sort-join: 2163
+11999998
+hash-join starting
+hash-join: 11423
+sort-join starting
+sort-join: 2135
+11999998
+hash-join starting
+hash-join: 11227
+sort-join starting
+sort-join: 2142
+11999998
+hash-join starting
+hash-join: 11142
+sort-join starting
+sort-join: 2174
+11999998
+hash-join starting
+hash-join: 11165
+sort-join starting
+sort-join: 2178
+11999998
+hash-join starting
+hash-join: 11333
+sort-join starting
+sort-join: 2184
+11999998
+5000000
+hash-join starting
+hash-join: 14105
+sort-join starting
+sort-join: 2819
+14999998
+hash-join starting
+hash-join: 14068
+sort-join starting
+sort-join: 2823
+14999998
+hash-join starting
+hash-join: 14341
+sort-join starting
+sort-join: 2787
+14999998
+hash-join starting
+hash-join: 14030
+sort-join starting
+sort-join: 2739
+14999998
+hash-join starting
+hash-join: 14116
+sort-join starting
+sort-join: 2769
+14999998

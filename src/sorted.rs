@@ -54,7 +54,7 @@ fn intersect(r: &[u32], s: &[u32]) -> Vec<u32> {
         .collect()
 }
 
-pub fn triangle_sort<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
+pub fn triangle_index<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
     mut r: &[(u32, Vec<u32>)],
     s: &[(u32, Vec<u32>)],
     mut t: &[(u32, Vec<u32>)],
