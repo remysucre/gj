@@ -8,6 +8,9 @@ pub mod relation {
     type HashMap<K, V> = std::collections::HashMap<
             K, V, std::hash::BuildHasherDefault<SeaHasher>>;
 
+    // TODO create should take f: record -> (key, residual)
+    // TODO support non-copied types
+    // TODO intersect should handle len
     pub trait IdxRel {
         type Res: 'static;
 
