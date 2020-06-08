@@ -178,9 +178,8 @@ impl<'t, K: Eq + Ord, R> Index for Trie<K, R> {
                 r.iter()
                  .flat_map(move |x| {
                      s = gallop(s, |y| y.0 < x.0);
-                     let y = &s[0];
-                     if s.len() > 0 && y.0 == x.0 {
-                         Some((&x.0, &x.1[..], &y.1[..]))
+                     if s.len() > 0 && s[0].0 == x.0 {
+                         Some((&x.0, &x.1[..], &s[0].1[..]))
                      } else {
                          None
                      }
