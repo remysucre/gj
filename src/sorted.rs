@@ -175,8 +175,9 @@ impl<'t, K: Eq + Ord, R> Index for Trie<K, R> {
             let r = self;
             let mut s = other.to_slice();
             Box::new(
-                r.iter()
+                r.iter() // for each x in r
                  .flat_map(move |x| {
+                     // forward-bin search for x in s
                      s = gallop(s, |y| y.0 < x.0);
                      if s.len() > 0 && s[0].0 == x.0 {
                          Some((&x.0, &x.1[..], &s[0].1[..]))
