@@ -1,55 +1,60 @@
 use seahash::SeaHasher;
+use std::hash::Hash;
 
 type HashMap<K, V> = std::collections::HashMap<
         K, V, std::hash::BuildHasherDefault<SeaHasher>>;
 type HashSet<V> = std::collections::HashSet<
         V, std::hash::BuildHasherDefault<SeaHasher>>;
 
-// Compute the triangle query Q(x,y,z) = R(x, y), S(y, z), T(z, x) using generic join.
-// This version scans the entire S when intersecting it with R(a, y), therefore is slow.
+use crate::relation::*;
+
+impl<K: Eq + Hash, R> Index for HashMap<K, Vec<R>> {
+    type Key = K;
+    type Res = R;
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn get(&self, a: &Self::Key) -> Option<&[Self::Res]> {
+        self.get(a).map(Vec::as_slice)
+    }
+
+    fn create(r: impl Iterator<Item = (Self::Key, Self::Res)>) -> Self
+    {
+        let mut r_x = HashMap::default();
+        for (x, y) in r {
+            let ys = r_x.entry(x).or_insert_with(Vec::new);
+            ys.push(y);
+        }
+        r_x
+    }
+
+    fn intersect
+        <'a, O: Index<Key = Self::Key>>
+        (&'a self, other: &'a O) ->
+        Box<dyn Iterator<Item = (&'a Self::Key, &'a [Self::Res], &'a [O::Res])> + 'a>
+    {
+        if self.len() <= other.len() {
+            Box::new(self.iter().filter_map(move |(a, y)| {
+                other.get(a).map(|z| (a, &y[..], z))
+            }))
+        } else {
+            Box::new(other.intersect(self).map(|(a, x, y)| (a, y, x)))
+        }
+    }
+}
+
 pub fn triangle<'a, R: Default, F: Fn(&mut R, (&u32, &u32, &u32))>(
     r: &'a [(u32, u32)],
     s: &'a [(u32, u32)],
     t: &'a [(u32, u32)],
     agg: F,
 ) -> R {
-    // hash r on x to be joined with t
-    // r_x[a] is the residual relation r(a, y)
-    let mut r_x = HashMap::default();
-    for (x, y) in r {
-        let ys = r_x.entry(x).or_insert_with(HashSet::default);
-        ys.insert(y);
-    }
-    // hash-join t with r on x
-    // t_x[a] is the residual relation t(z, a)
-    let mut t_x = HashMap::default();
-    for (z, x) in t {
-        if r_x.contains_key(&x) {
-            let zs = t_x.entry(x).or_insert_with(HashSet::default);
-            zs.insert(z);
-        }
-    }
-    // building this hash outside the loop
-    let mut s_y = HashMap::default();
-    let mut s_y_keys = HashSet::default();
-    for (y, z) in s {
-        let zs = s_y.entry(y).or_insert_with(HashSet::default);
-        zs.insert(z);
-        s_y_keys.insert(y);
-    }
-    let mut result = R::default();
-    // now we have hash-joined r and t, and t_x.keys = intersect(r.x, t.x)
-    for (a, t_a) in t_x.iter() {
-        let r_a = r_x.get(a).expect("t_x.x not found in r_x");
-        // join s and r_a
-        // s_y[b] is the residual relation s(b, z)
-        for b in r_a.intersection(&s_y_keys) {
-            for c in s_y[b].intersection(t_a) {
-                agg(&mut result, (*a, *b, *c));
-            }
-        }
-    }
-    result
+    triangle_otf::
+    <HashMap<u32, Vec<u32>>,
+     HashMap<u32, Vec<()>>,
+     R, F>(r, s, t, agg)
 }
 
 // This version takes hash indexes for r, s, t.

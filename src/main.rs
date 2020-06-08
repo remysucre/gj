@@ -17,12 +17,12 @@ pub fn on_the_fly(n: u32) {
 
     // Hash-based generic join
     {
-        use relation::*;
+        use hashed::*;
 
         let t: Vec<_> = es.iter().copied().map(|(x, y)| (y, x)).collect();
         println!("hash-join starting");
         let now = Instant::now();
-        ts_h = triangle_hash(&es, &es, &t, |result: &mut u32, _| {
+        ts_h = triangle(&es, &es, &t, |result: &mut u32, _| {
             *result += 1
         });
         println!("hash-join: {}", now.elapsed().as_millis());

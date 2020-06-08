@@ -1,3 +1,5 @@
+use crate::relation::*;
+
 // Taken from Frank McSherry's blog Worst-case optimal joins, in dataflow
 // advances slice to the first element not less than value
 pub fn gallop<T>(mut slice: &[T], mut cmp: impl FnMut(&T) -> bool) -> &[T] {
@@ -104,3 +106,43 @@ pub fn to_trie(r: &[(u32, u32)]) -> Vec<(u32, Vec<u32>)> {
     }
     result
 }
+
+// type Trie<K, R> = Vec<(K, Vec<R>)>;
+//
+// impl<K: Eq + Hash, R> Index for Trie<K, R> {
+//     type Key = K;
+//     type Res = R;
+//
+//     fn len(&self) -> usize {
+//         self.len()
+//     }
+//
+//     fn get(&self, a: &Self::Key) -> Option<&[Self::Res]> {
+//         self.get(a).map(Vec::as_slice)
+//     }
+//
+//     fn create(r: impl Iterator<Item = (Self::Key, Self::Res)>) -> Self
+//     {
+//         let mut r_x = HashMap::default();
+//         for (x, y) in r {
+//             let ys = r_x.entry(x).or_insert_with(Vec::new);
+//             ys.push(y);
+//         }
+//         r_x
+//     }
+//
+//     fn intersect
+//         <'a, O: Index<Key = Self::Key>>
+//         (&'a self, other: &'a O) ->
+//         Box<dyn Iterator<Item = (&'a Self::Key, &'a [Self::Res], &'a [O::Res])> + 'a>
+//     {
+//         if self.len() <= other.len() {
+//             Box::new(self.iter().filter_map(move |(a, y)| {
+//                 other.get(a).map(|z| (a, &y[..], z))
+//             }))
+//         } else {
+//             Box::new(other.intersect(self).map(|(a, x, y)| (a, y, x)))
+//         }
+//     }
+//
+// }
