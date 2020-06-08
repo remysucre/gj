@@ -15,6 +15,9 @@ pub mod relation {
 
         fn len(&self) -> usize;
 
+        // HACK to support tries
+        fn to_slice(&self) -> &[(Self::Key, Vec<Self::Res>)];
+
         fn get(&self, a: &Self::Key) -> Option<&[Self::Res]>;
 
         fn intersect

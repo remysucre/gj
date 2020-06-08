@@ -20,6 +20,10 @@ impl<K: Eq + Hash, R> Index for HashMap<K, Vec<R>> {
         self.get(a).map(Vec::as_slice)
     }
 
+    fn to_slice(&self) -> &[(Self::Key, Vec<Self::Res>)] {
+        unimplemented!()
+    }
+
     fn create(r: impl Iterator<Item = (Self::Key, Self::Res)>) -> Self
     {
         let mut r_x = HashMap::default();
