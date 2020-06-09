@@ -1,29 +1,5 @@
 use crate::relation::*;
 
-// find last index < element
-pub fn gallop_v<T>(v: &Vec<T>, mut cmp: impl FnMut(&T) -> bool) -> Option<usize> {
-    // if empty slice, or already >= element, return None
-    if !v.is_empty() && cmp(&v[0]) {
-        let mut step = 1;
-        let mut i = 0;
-        while i + step < v.len() && cmp(&v[i + step]) {
-            i += step;
-            step <<= 1;
-        }
-
-        step >>= 1;
-        while step > 0 {
-            if i + step < v.len() && cmp(&v[step]) {
-                i += step;
-            }
-            step >>= 1;
-        }
-        Some(i)
-    } else {
-        None
-    }
-}
-
 // Taken from Frank McSherry's blog Worst-case optimal joins, in dataflow
 // advances slice to the first element not less than value
 pub fn gallop<T>(mut slice: &[T], mut cmp: impl FnMut(&T) -> bool) -> &[T] {
@@ -61,7 +37,8 @@ fn sorted(s: &[u32]) -> bool {
     true
 }
 
-fn intersect(r: &[u32], s: &[u32]) -> Vec<u32> {
+// TODO make these into 1 intersect with logic
+fn intersect_v_v(r: &[u32], s: &[u32]) -> Vec<u32> {
     debug_assert!(sorted(r) && sorted(s));
     let mut r = r;
     let mut s = s;
@@ -80,36 +57,72 @@ fn intersect(r: &[u32], s: &[u32]) -> Vec<u32> {
         .collect()
 }
 
+fn intersect_v_e<'a>(r: &'a [u32], s: &'a [(u32, Vec<u32>)]) -> Vec<(u32, &'a Vec<u32>)> {
+    let mut s = s;
+    if r.len() <= s.len() {
+    r.iter()
+        .flat_map(|x_1| {
+            s = gallop(s, |(x_2, _z)| x_2 < x_1);
+            if !s.is_empty() && s[0].0 == *x_1 {
+                Some((*x_1, &s[0].1))
+            } else {
+                None
+            }
+        })
+        .collect()
+    } else {
+        intersect_e_v(s, r)
+    }
+}
+fn intersect_e_v<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [u32]) -> Vec<(u32, &'a Vec<u32>)> {
+    let mut s = s;
+    if r.len() <= s.len() {
+    r.iter()
+        .flat_map(|(x_1, y)| {
+            s = gallop(s, |x_2| x_2 < x_1);
+            if !s.is_empty() && s[0] == *x_1 {
+                Some((*x_1, y))
+            } else {
+                None
+            }
+        })
+        .collect()
+    } else {
+        intersect_v_e(s, r)
+    }
+}
+
+fn intersect_e_e<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [(u32, Vec<u32>)]) -> Vec<(u32, &'a Vec<u32>, &'a Vec<u32>)> {
+    let mut r = r;
+    let mut s = s;
+    if r.len() > s.len() {
+        std::mem::swap(&mut r, &mut s);
+    }
+    r.iter()
+        .flat_map(|(x_1, y)| {
+            s = gallop(s, |(x_2, _z)| x_2 < x_1);
+            if !s.is_empty() && s[0].0 == *x_1 {
+                Some((*x_1, y, &s[0].1))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 pub fn triangle_index<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
-    mut r: &[(u32, Vec<u32>)],
+    r: &[(u32, Vec<u32>)],
     s: &[(u32, Vec<u32>)],
-    mut t: &[(u32, Vec<u32>)],
+    t: &[(u32, Vec<u32>)],
     agg: F,
 ) -> R {
     let mut result = R::default();
 
-    let r_x: Vec<_> = r.iter().map(|(x, _)| *x).collect();
-    let t_x: Vec<_> = t.iter().map(|(x, _)| *x).collect();
-    let s_y: Vec<_> = s.iter().map(|(y, _)| *y).collect();
-
-    let big_a = intersect(&r_x, &t_x);
-    for a in big_a {
-        r = gallop(r, |(x, _)| x < &a);
-        let r_a = &r[0].1;
-        debug_assert_eq!(&r[0].0, &a);
-
-        let big_b = intersect(r_a, &s_y);
-        t = gallop(t, |(x, _)| x < &a);
-        let t_a = &t[0].1;
-        debug_assert_eq!(&t[0].0, &a);
-
-        // NOTE this should reset s
-        let mut s_ = s;
-        for b in big_b {
-            s_ = gallop(s_, |(y, _)| y < &b);
-            let s_b = &s_[0].1;
-            debug_assert_eq!(&s_[0].0, &b);
-            let big_c = intersect(s_b, t_a);
+    let big_a = intersect_e_e(r, t);
+    for (a, r_a, t_a) in big_a {
+        let big_b = intersect_v_e(r_a, &s);
+        for (b, s_b) in big_b {
+            let big_c = intersect_v_v(s_b, t_a);
             for c in big_c {
                 agg(&mut result, (a, b, c))
             }

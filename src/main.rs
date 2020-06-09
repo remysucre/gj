@@ -5,9 +5,9 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let n = args[1].parse().unwrap();
 
-    on_the_fly(n)
+    // on_the_fly(n)
     // worst_case(n)
-    // live_journal(n)
+    live_journal(n)
 }
 
 pub fn on_the_fly(n: u32) {
@@ -68,12 +68,12 @@ pub fn worst_case(n: u32) {
     {
         use gj::sorted::*;
         // sort-gj with tries
-        r.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        r.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
         let r_t = to_trie(&r);
-        s.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        s.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
         let s_t = to_trie(&s);
         let mut t: Vec<_> = t.into_iter().map(|(x, y)| (y, x)).collect();
-        t.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        t.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
         let t_t = to_trie(&t);
 
         println!("sort-join starting");
@@ -109,11 +109,11 @@ pub fn live_journal(n: u32) {
     {
         use gj::sorted::*;
         // sort-gj with tries
-        es.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        es.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
         let r_t = to_trie(&es);
         let s_t = r_t.clone();
         let mut t: Vec<_> = es.into_iter().map(|(x, y)| (y, x)).collect();
-        t.sort_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        t.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
         let t_t = to_trie(&t);
 
         println!("sort-join starting");
