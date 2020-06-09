@@ -95,14 +95,20 @@ fn intersect_e_v<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [u32]) -> Vec<(u32, &'a Ve
 fn intersect_e_e<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [(u32, Vec<u32>)]) -> Vec<(u32, &'a Vec<u32>, &'a Vec<u32>)> {
     let mut r = r;
     let mut s = s;
+    let mut swapped = false;
     if r.len() > s.len() {
         std::mem::swap(&mut r, &mut s);
+        swapped = true;
     }
     r.iter()
         .flat_map(|(x_1, y)| {
             s = gallop(s, |(x_2, _z)| x_2 < x_1);
             if !s.is_empty() && s[0].0 == *x_1 {
-                Some((*x_1, y, &s[0].1))
+                Some( if swapped {
+                    (*x_1, &s[0].1, y)
+                } else {
+                    (*x_1, y, &s[0].1)
+                })
             } else {
                 None
             }
@@ -110,7 +116,7 @@ fn intersect_e_e<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [(u32, Vec<u32>)]) -> Vec<
         .collect()
 }
 
-pub fn triangle_index<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
+pub fn triangle_index_xyz<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
     r: &[(u32, Vec<u32>)],
     s: &[(u32, Vec<u32>)],
     t: &[(u32, Vec<u32>)],
@@ -118,18 +124,111 @@ pub fn triangle_index<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
 ) -> R {
     let mut result = R::default();
 
-    let big_a = intersect_e_e(r, t);
-    for (a, r_a, t_a) in big_a {
-        let big_b = intersect_v_e(r_a, &s);
-        for (b, s_b) in big_b {
-            let big_c = intersect_v_v(s_b, t_a);
-            for c in big_c {
+    for (a, r_a, t_a) in intersect_e_e(r, t) {
+        for (b, s_b) in intersect_e_v(s, r_a) {
+            for c in intersect_v_v(s_b, t_a) {
                 agg(&mut result, (a, b, c))
             }
         }
     }
     result
 }
+
+// r, t indexed on x, s indexed on z
+pub fn triangle_index_xzy<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
+    r: &[(u32, Vec<u32>)],
+    s: &[(u32, Vec<u32>)],
+    t: &[(u32, Vec<u32>)],
+    agg: F,
+) -> R {
+    let mut result = R::default();
+
+    for (a, r_a, t_a) in intersect_e_e(r, t) {
+        for (c, s_c) in intersect_e_v(s, t_a) {
+            for b in intersect_v_v(s_c, r_a) {
+                agg(&mut result, (a, b, c))
+            }
+        }
+    }
+    result
+}
+
+// r, s indexed on y, t indexed on x
+pub fn triangle_index_yxz<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
+    r: &[(u32, Vec<u32>)],
+    s: &[(u32, Vec<u32>)],
+    t: &[(u32, Vec<u32>)],
+    agg: F,
+) -> R {
+    let mut result = R::default();
+
+    for (b, r_b, s_b) in intersect_e_e(r, s) {
+        for (a, t_a) in intersect_e_v(t, r_b) {
+            for c in intersect_v_v(s_b, t_a) {
+                agg(&mut result, (a, b, c))
+            }
+        }
+    }
+    result
+}
+
+// r, t indexed on x, s indexed on z
+pub fn triangle_index_yzx<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
+    r: &[(u32, Vec<u32>)],
+    s: &[(u32, Vec<u32>)],
+    t: &[(u32, Vec<u32>)],
+    agg: F,
+) -> R {
+    let mut result = R::default();
+
+    for (a, r_a, t_a) in intersect_e_e(r, t) {
+        for (c, s_c) in intersect_e_v(s, t_a) {
+            for b in intersect_v_v(s_c, r_a) {
+                agg(&mut result, (a, b, c))
+            }
+        }
+    }
+    result
+}
+
+// r, t indexed on x, s indexed on z
+pub fn triangle_index_zxy<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
+    r: &[(u32, Vec<u32>)],
+    s: &[(u32, Vec<u32>)],
+    t: &[(u32, Vec<u32>)],
+    agg: F,
+) -> R {
+    let mut result = R::default();
+
+    for (c, s_c, t_c) in intersect_e_e(s, t) {
+        for (a, r_a) in intersect_e_v(r, t_c) {
+            for b in intersect_v_v(s_c, r_a) {
+                agg(&mut result, (a, b, c))
+            }
+        }
+    }
+    result
+}
+
+// r, t indexed on x, s indexed on z
+pub fn triangle_index_zyx<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
+    r: &[(u32, Vec<u32>)],
+    s: &[(u32, Vec<u32>)],
+    t: &[(u32, Vec<u32>)],
+    agg: F,
+) -> R {
+    let mut result = R::default();
+
+    for (c, s_c, t_c) in intersect_e_e(s, t) {
+        for (b, r_b) in intersect_e_v(r, s_c) {
+            for a in intersect_v_v(t_c, r_b) {
+                agg(&mut result, (a, b, c))
+            }
+        }
+    }
+    result
+}
+
 
 // NOTE should be sorted
 pub fn to_trie(r: &[(u32, u32)]) -> Vec<(u32, Vec<u32>)> {

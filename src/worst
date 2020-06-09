@@ -1,7 +1,0 @@
-    Finished release [optimized] target(s) in 0.01s
-     Running `/Users/remywang/wcoj/gj/target/release/gj 1000000`
-hash-join starting
-hash-join: 2086
-sort-join starting
-sort-join: 541
-2999998
