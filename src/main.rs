@@ -5,10 +5,10 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let n = args[1].parse().unwrap();
 
-    // on_the_fly(n)
+    on_the_fly(n)
     // worst_case(n)
     // live_journal(n)
-    live_journal_part(n)
+    // live_journal_part(n)
 }
 
 pub fn on_the_fly(n: u32) {

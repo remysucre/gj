@@ -1,10 +1,11 @@
-use seahash::SeaHasher;
+// use seahash::SeaHasher;
+use ahash::AHasher;
 use std::hash::Hash;
 
 type HashMap<K, V> = std::collections::HashMap<
-        K, V, std::hash::BuildHasherDefault<SeaHasher>>;
+        K, V, std::hash::BuildHasherDefault<AHasher>>;
 type HashSet<V> = std::collections::HashSet<
-        V, std::hash::BuildHasherDefault<SeaHasher>>;
+        V, std::hash::BuildHasherDefault<AHasher>>;
 
 use crate::relation::*;
 
@@ -61,6 +62,16 @@ pub fn triangle<'a, R: Default, F: Fn(&mut R, (&u32, &u32, &u32))>(
      R, F>(r, s, t, agg)
 }
 
+fn lookup(m: &HashMap<u32, HashSet<u32>>, n: u32) -> &HashSet<u32> {
+  // let _guard = flame::start_guard("lookup");
+  m.get(&n).unwrap()
+}
+
+fn inter<'a>(x: &'a HashSet<u32>, y: &'a HashSet<u32>) -> std::collections::hash_set::Intersection<'a, u32, std::hash::BuildHasherDefault<AHasher>> {
+  // let _guard = flame::start_guard("inter");
+  x.intersection(y)
+}
+
 // This version takes hash indexes for r, s, t.
 pub fn triangle_index<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
     r: HashMap<u32, HashSet<u32>>,
@@ -72,13 +83,25 @@ pub fn triangle_index<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
     agg: F,
 ) -> R {
     let mut result = R::default();
-    for a in r_keys.intersection(&t_keys) {
-        for b in r[a].intersection(&s_keys) {
-            for c in s[b].intersection(&t[a]) {
+    // let big_a = r_keys.intersection(&t_keys);
+    let big_a = inter(&r_keys, &t_keys);
+    for a in big_a {
+        // let r_a = r.get(a).unwrap();
+        let r_a = lookup(&r, *a);
+        // let big_b = r_a.intersection(&s_keys);
+        let big_b = inter(&r_a, &s_keys);
+        for b in big_b {
+            // let s_b = s.get(b).unwrap();
+            let s_b = lookup(&s, *b);
+            // let big_c = s_b.intersection(&t[a]);
+            let t_a = lookup(&t, *a);
+            let big_c = inter(&s_b, &t_a);
+            for c in big_c {
                 agg(&mut result, (*a, *b, *c));
             }
         }
     }
+    // flame::dump_html(&mut std::fs::File::create("flame-graph.html").unwrap()).unwrap();
     result
 }
 
