@@ -2,16 +2,15 @@
 use criterion::*;
 use gj::util::*;
 
-criterion_group!(benches, criterion_benchmark);
+criterion_group!(benches, bench_indexed);
 criterion_main!(benches);
 
-pub fn criterion_benchmark(c: &mut Criterion) {
+pub fn bench_indexed(c: &mut Criterion) {
     let mut group = c.benchmark_group("triangle-indexed");
 
     static K: u32 = 1000;
 
-    for i in [100*K, 300*K, 500*K, 700*K, 1000*K, 3000*K, 68993770] {
-    // for i in [100*K, 300*K, 500*K].iter() {
+    for i in [100*K, 300*K, 500*K].iter() {
 
         let (mut r, mut s, t) = gen_worst_case_relations(*i);
 

@@ -52,5 +52,5 @@ pub fn read_edges(n: usize) -> Result<Vec<(u32, u32)>, Box<dyn std::error::Error
 
 pub fn partition(es: &[(u32, u32)]) -> (Vec<(u32, u32)>, Vec<(u32, u32)>, Vec<(u32, u32)>) {
     let l = es.len();
-    (es[0..l/3].to_vec(), es[l/3..l*2/3].to_vec(), es[l*2/3..].to_vec())
+    (es[0..l/100].to_vec(), es[l/100..l/2].to_vec(), es[l/2..].to_vec())
 }
