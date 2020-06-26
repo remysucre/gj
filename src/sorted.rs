@@ -116,6 +116,38 @@ fn intersect_e_e<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [(u32, Vec<u32>)]) -> Vec<
         .collect()
 }
 
+
+fn intersect_v_e_v<'a>(r: &'a [u32], mut s: &'a [(u32, Vec<u32>)], mut t: &'a[u32]) -> Vec<(u32, &'a Vec<u32>)> {
+    r.iter()
+        .flat_map(|x_1| {
+            s = gallop(s, |(x_2, _z)| x_2 < x_1);
+            t = gallop(t, |x_2| x_2 < x_1);
+
+            if !s.is_empty() && s[0].0 == *x_1 && t[0] == *x_1 {
+                Some((*x_1, &s[0].1))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+pub fn imdb_index(
+    k: &[u32],
+    cn: &[u32],
+    mc: &[(u32, Vec<u32>)],
+    mk: &[(u32, Vec<u32>)],
+    t: &[u32],
+) {
+    for (_k, mk_k) in intersect_v_e(k, mk) {
+        for (m, mc_m) in intersect_v_e_v(mk_k, mc, t) {
+            for _cid in intersect_v_v(cn, mc_m) {
+                println!("{}", m);
+            }
+        }
+    }
+}
+
 pub fn triangle_index_xyz<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
     r: &[(u32, Vec<u32>)],
     s: &[(u32, Vec<u32>)],

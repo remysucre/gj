@@ -1,15 +1,99 @@
 use std::time::Instant;
 use gj::{util::*, *};
 
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    let n = args[1].parse().unwrap();
+fn load_table(f: String) -> Vec<Vec<String>> {
+    use std::fs;
+    let data = fs::read_to_string(f)
+                .expect("Something went wrong reading the file");
 
-    on_the_fly(n)
+    use csv::ReaderBuilder;
+    let mut rdr = ReaderBuilder::new()
+        .escape(Some(b'\\'))
+        .from_reader(data.as_bytes());
+    let mut es = vec![];
+    for rec in rdr.records() {
+        let record = rec.unwrap();
+        es.push(record.into_iter().map(|s| s.to_owned()).collect());
+    }
+    es
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>>{
+
+    let args: Vec<String> = std::env::args().collect();
+    let company_name = args[1].parse().unwrap();
+    let keyword = args[2].parse().unwrap();
+    let movie_companies = args[3].parse().unwrap();
+    let movie_keyword = args[4].parse().unwrap();
+    let title = args[5].parse().unwrap();
+
+    let k = load_table(keyword);
+    let cn = load_table(company_name);
+    let mc = load_table(movie_companies);
+    let mk = load_table(movie_keyword);
+    let t = load_table(title);
+
+    // kid
+    let mut k: Vec<u32> = k.iter().filter_map(|sr| {
+        if &sr[1] == "character-name-in-title" {
+            sr[0].parse().ok()
+        } else {
+            None
+        }
+    }).collect();
+    // cid
+    let mut cn: Vec<u32> = cn.iter().filter_map(|sr| {
+        if &sr[2] == "[de]" {
+            sr[0].parse().ok()
+        } else {
+            None
+        }
+    }).collect();
+    // mid, cid
+    let mut mc: Vec<(u32, u32)> = mc.iter().map(|sr| (sr[1].parse().unwrap(), sr[2].parse().unwrap())).collect();
+    // kid, mid
+    let mut mk: Vec<(u32, u32)> = mk.iter().map(|sr| (sr[2].parse().unwrap(), sr[1].parse().unwrap())).collect();
+    // mid
+    let mut t: Vec<u32> = t.iter().map(|sr| sr[0].parse().unwrap()).collect();
+
+    println!("{:?}", (
+        cn.len(),
+        k.len(),
+        mc.len(),
+        mk.len(),
+        t.len(),
+    ));
+
+    {
+        use gj::sorted::*;
+        k.sort_unstable();
+        // let k_t = to_trie(&k);
+        cn.sort_unstable();
+        // let s_t = to_trie(&s);
+        mc.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        let mc_t = to_trie(&mc);
+        mk.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        let mk_t = to_trie(&mk);
+        t.sort_unstable();
+
+        println!("sort-join starting");
+        let now = Instant::now();
+        imdb_index(&k, &cn, &mc_t, &mk_t, &t);
+        println!("sort-join: {}", now.elapsed().as_millis());
+    }
+
+    Ok(())
+}
+
+// fn main() {
+    // let args: Vec<String> = std::env::args().collect();
+    // let n = args[1].parse().unwrap();
+
+    // on_the_fly(n)
     // worst_case(n)
     // live_journal(n)
     // live_journal_part(n)
-}
+// }
 
 pub fn on_the_fly(n: u32) {
 
