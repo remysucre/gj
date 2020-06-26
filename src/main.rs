@@ -67,19 +67,45 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
     {
         use gj::sorted::*;
         k.sort_unstable();
-        // let k_t = to_trie(&k);
         cn.sort_unstable();
-        // let s_t = to_trie(&s);
         mc.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
-        let mc_t = to_trie(&mc);
+        mc.dedup();
+        let mc_m = to_trie(&mc);
+        let mut cm: Vec<_> = mc.into_iter().map(|(m, c)| (c, m)).collect();
+        cm.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        let mc_c = to_trie(&cm);
         mk.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
-        let mk_t = to_trie(&mk);
+        mk.dedup();
+        let mk_k = to_trie(&mk);
+        let mut km: Vec<_> = mk.into_iter().map(|(m, c)| (c, m)).collect();
+        km.sort_unstable_by(|(x_1, y_1), (x_2, y_2)| x_1.cmp(x_2).then(y_1.cmp(y_2)));
+        let mk_m = to_trie(&km);
         t.sort_unstable();
 
         println!("sort-join starting");
         let now = Instant::now();
-        imdb_index(&k, &cn, &mc_t, &mk_t, &t);
-        println!("sort-join: {}", now.elapsed().as_millis());
+        imdb_kmc(&k, &cn, &mc_m, &mk_k, &t);
+        println!("kmc sort-join: {}", now.elapsed().as_millis());
+        println!("sort-join starting");
+        let now = Instant::now();
+        imdb_kcm(&k, &cn, &mc_c, &mk_k, &t);
+        println!("kcm sort-join: {}", now.elapsed().as_millis());
+        println!("sort-join starting");
+        let now = Instant::now();
+        imdb_mkc(&k, &cn, &mc_m, &mk_m, &t);
+        println!("mkc sort-join: {}", now.elapsed().as_millis());
+        println!("sort-join starting");
+        let now = Instant::now();
+        imdb_mck(&k, &cn, &mc_m, &mk_m, &t);
+        println!("mck sort-join: {}", now.elapsed().as_millis());
+        println!("sort-join starting");
+        let now = Instant::now();
+        imdb_ckm(&k, &cn, &mc_c, &mk_k, &t);
+        println!("ckm sort-join: {}", now.elapsed().as_millis());
+        println!("sort-join starting");
+        let now = Instant::now();
+        imdb_cmk(&k, &cn, &mc_c, &mk_m, &t);
+        println!("cmk sort-join: {}", now.elapsed().as_millis());
     }
 
     Ok(())

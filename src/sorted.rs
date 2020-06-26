@@ -117,13 +117,49 @@ fn intersect_e_e<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [(u32, Vec<u32>)]) -> Vec<
 }
 
 
+fn intersect_v_v_v<'a>(mut r: &'a [u32], mut s: &'a [u32], mut t: &'a[u32]) -> Vec<u32> {
+    if r.len() > s.len() {
+        std::mem::swap(&mut r, &mut s);
+    }
+    if r.len() > t.len() {
+        std::mem::swap(&mut r, &mut t);
+    }
+    r.iter()
+        .flat_map(|x_1| {
+            s = gallop(s, |x_2| x_2 < x_1);
+            t = gallop(t, |x_2| x_2 < x_1);
+
+            if !s.is_empty() && !t.is_empty() && s[0] == *x_1 && t[0] == *x_1 {
+                Some(*x_1)
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+fn intersect_e_e_v<'a>(r: &'a [(u32, Vec<u32>)], mut s: &'a [(u32, Vec<u32>)], mut t: &'a[u32]) -> Vec<(u32, &'a Vec<u32>, &'a Vec<u32>)> {
+    r.iter()
+        .flat_map(|(x_1, y)| {
+            s = gallop(s, |(x_2, _z)| x_2 < x_1);
+            t = gallop(t, |x_2| x_2 < x_1);
+
+            if !s.is_empty() && s[0].0 == *x_1 && t[0] == *x_1 {
+                Some((*x_1, y, &s[0].1))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 fn intersect_v_e_v<'a>(r: &'a [u32], mut s: &'a [(u32, Vec<u32>)], mut t: &'a[u32]) -> Vec<(u32, &'a Vec<u32>)> {
     r.iter()
         .flat_map(|x_1| {
             s = gallop(s, |(x_2, _z)| x_2 < x_1);
             t = gallop(t, |x_2| x_2 < x_1);
 
-            if !s.is_empty() && s[0].0 == *x_1 && t[0] == *x_1 {
+            if !s.is_empty() && !t.is_empty() && s[0].0 == *x_1 && t[0] == *x_1 {
                 Some((*x_1, &s[0].1))
             } else {
                 None
@@ -132,20 +168,112 @@ fn intersect_v_e_v<'a>(r: &'a [u32], mut s: &'a [(u32, Vec<u32>)], mut t: &'a[u3
         .collect()
 }
 
-pub fn imdb_index(
+pub fn imdb_kmc(
     k: &[u32],
     cn: &[u32],
     mc: &[(u32, Vec<u32>)],
     mk: &[(u32, Vec<u32>)],
     t: &[u32],
 ) {
+    let mut count = 0;
     for (_k, mk_k) in intersect_v_e(k, mk) {
-        for (m, mc_m) in intersect_v_e_v(mk_k, mc, t) {
+        for (_m, mc_m) in intersect_v_e_v(mk_k, mc, t) {
             for _cid in intersect_v_v(cn, mc_m) {
-                println!("{}", m);
+                count += 1;
             }
         }
     }
+    println!("{}", count);
+}
+
+pub fn imdb_kcm(
+    k: &[u32],
+    cn: &[u32],
+    mc: &[(u32, Vec<u32>)],
+    mk: &[(u32, Vec<u32>)],
+    t: &[u32],
+) {
+    let mut count = 0;
+    for (_k, mk_k) in intersect_v_e(k, mk) {
+        for (_cid, mc_c) in intersect_v_e(cn, mc) {
+            for _m in intersect_v_v_v(mk_k, mc_c, t) {
+                count += 1;
+            }
+        }
+    }
+    println!("{}", count);
+}
+
+pub fn imdb_mkc(
+    k: &[u32],
+    cn: &[u32],
+    mc: &[(u32, Vec<u32>)],
+    mk: &[(u32, Vec<u32>)],
+    t: &[u32],
+) {
+    let mut count = 0;
+    for (_m, mc_m, mk_m) in intersect_e_e_v(mc, mk, t) {
+        for _k in intersect_v_v(k, mk_m) {
+            for _cid in intersect_v_v(cn, mc_m) {
+                count += 1;
+            }
+        }
+    }
+    println!("{}", count);
+}
+
+pub fn imdb_mck(
+    k: &[u32],
+    cn: &[u32],
+    mc: &[(u32, Vec<u32>)],
+    mk: &[(u32, Vec<u32>)],
+    t: &[u32],
+) {
+    let mut count = 0;
+    for (_m, mc_m, mk_m) in intersect_e_e_v(mc, mk, t) {
+        for _cid in intersect_v_v(cn, mc_m) {
+            for _k in intersect_v_v(k, mk_m) {
+                count += 1;
+            }
+        }
+    }
+    println!("{}", count);
+}
+
+pub fn imdb_cmk(
+    k: &[u32],
+    cn: &[u32],
+    mc: &[(u32, Vec<u32>)],
+    mk: &[(u32, Vec<u32>)],
+    t: &[u32],
+) {
+    let mut count = 0;
+    for (_cid, mc_c) in intersect_v_e(cn, mc) {
+        for (_m, mk_m) in intersect_v_e_v(mc_c, mk, t) {
+            for _k in intersect_v_v(k, mk_m) {
+                count += 1;
+            }
+        }
+    }
+    println!("{}", count);
+}
+
+pub fn imdb_ckm(
+    k: &[u32],
+    cn: &[u32],
+    mc: &[(u32, Vec<u32>)],
+    mk: &[(u32, Vec<u32>)],
+    t: &[u32],
+) {
+    let mut count = 0;
+    for (_cid, mc_c) in intersect_v_e(cn, mc) {
+        for (_k, mk_k) in intersect_v_e(k, mk) {
+            for _m in intersect_v_v_v(mk_k, mc_c, t) {
+                count += 1;
+            }
+        }
+    }
+    println!("{}", count);
 }
 
 pub fn triangle_index_xyz<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
