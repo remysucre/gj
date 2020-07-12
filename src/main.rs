@@ -259,7 +259,7 @@ pub fn compressed(n: u32) {
 
             let (r0_x, r0ks) = build_hash(r_0, |e| e);
             let (s0_y, s0ks) = build_hash(s_0, |e| e);
-            let (t0_x, t0ks) = build_hash(t_0, |e| e);
+            let (t0_x, t0ks) = build_hash(t_0, |(z, x)| (x, z));
 
             let ts = triangle_index(r0_x, r0ks, s0_y, s0ks, t0_x, t0ks, |result: &mut u32, _| {
                 *result += 1;
