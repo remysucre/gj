@@ -18,7 +18,7 @@ fn load_table(f: String) -> Vec<Vec<String>> {
     es
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>>{
+fn job_main() -> Result<(), Box<dyn std::error::Error>>{
 
     let args: Vec<String> = std::env::args().collect();
     let company_name = args[1].parse().unwrap();
@@ -111,15 +111,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
     Ok(())
 }
 
-// fn main() {
-    // let args: Vec<String> = std::env::args().collect();
-    // let n = args[1].parse().unwrap();
+fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let n = args[1].parse().unwrap();
 
     // on_the_fly(n)
     // worst_case(n)
     // live_journal(n)
+    compressed(n)
     // live_journal_part(n)
-// }
+}
 
 pub fn on_the_fly(n: u32) {
 
@@ -192,6 +193,83 @@ pub fn worst_case(n: u32) {
         ts_s = triangle_index_xyz(&r_t, &s_t, &t_t, |n: &mut u32, _| *n += 1);
         println!("sort-join: {}", now.elapsed().as_millis());
     }
+    assert_eq!(ts_h, ts_s);
+    println!("{:?}", ts_h);
+}
+
+pub fn compressed(n: u32) {
+    // create scale copies of input graph
+    let es0 = read_edges(n as usize).unwrap();
+    let mut fac = 0;
+    for (x, y) in es0.iter() {
+        fac = std::cmp::max(fac, std::cmp::max(*x, *y));
+    }
+    let scale = 100;
+    let mut es = vec![];
+    for i in 0..scale {
+        for (x, y) in es0.iter() {
+            es.push((*x + i * fac, *y + i * fac));
+        }
+    }
+
+    let ts_h;
+    let mut ts_s = 0;
+
+    // Hash-based generic join
+    {
+        use hashed::*;
+
+        let (r_x, rks) = build_hash(&es, |e| e);
+        let (s_y, sks) = (r_x.clone(), rks.clone());
+        let (t_x, tks) = build_hash(&es, |(z, x)| (x, z));
+
+        println!("hash-join starting");
+        let now = Instant::now();
+        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut u32, _| {
+            *result += 1
+        });
+        println!("hash-join: {}", now.elapsed().as_millis());
+    }
+
+    // compress
+    {
+        use hashed::*;
+        use std::collections::HashMap;
+        // change this to a vector and address into it
+        let mut hr = HashMap::new();
+        for (x, y) in es {
+            let m = hr.entry((x % fac, y % fac)).or_insert_with(Vec::new);
+            m.push((x, y));
+        }
+
+        let (r_x, rks) = build_hash(&es0, |e| e);
+        let (s_y, sks) = (r_x.clone(), rks.clone());
+        let (t_x, tks) = build_hash(&es0, |(z, x)| (x, z));
+
+        println!("compressed-join starting");
+        let now = Instant::now();
+        let ts = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Vec<_>, t| {
+            result.push(t);
+        });
+
+        for (a, b, c) in ts {
+            let r_0 = &hr[&(a, b)];
+            let s_0 = &hr[&(b, c)];
+            let t_0 = &hr[&(c, a)];
+
+            let (r0_x, r0ks) = build_hash(r_0, |e| e);
+            let (s0_y, s0ks) = build_hash(s_0, |e| e);
+            let (t0_x, t0ks) = build_hash(t_0, |e| e);
+
+            let ts = triangle_index(r0_x, r0ks, s0_y, s0ks, t0_x, t0ks, |result: &mut u32, _| {
+                *result += 1;
+            });
+
+            ts_s += ts;
+        }
+        println!("compressed-join: {}", now.elapsed().as_millis());
+    }
+   
     assert_eq!(ts_h, ts_s);
     println!("{:?}", ts_h);
 }
