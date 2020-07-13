@@ -204,6 +204,7 @@ pub fn compressed(n: u32) {
     for (x, y) in es0.iter() {
         fac = std::cmp::max(fac, std::cmp::max(*x, *y));
     }
+    // NOTE breaks if scale too large, as overlaps will occur
     let scale = 100;
     let mut es = vec![];
     for i in 0..scale {
