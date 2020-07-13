@@ -204,7 +204,8 @@ pub fn compressed(n: u32) {
     for (x, y) in es0.iter() {
         fac = std::cmp::max(fac, std::cmp::max(*x, *y));
     }
-    // NOTE breaks if scale too large, as overlaps will occur
+
+    // NOTE breaks if scale too large due to overflow
     let scale = 100;
     let mut es = vec![];
     for i in 0..scale {
@@ -236,8 +237,8 @@ pub fn compressed(n: u32) {
     {
         use hashed::*;
         use std::collections::HashMap;
-        // change this to a vector and address into it
         let mut hr = HashMap::new();
+
         for (x, y) in es {
             let m = hr.entry((x % fac, y % fac)).or_insert_with(Vec::new);
             m.push((x, y));
@@ -252,7 +253,6 @@ pub fn compressed(n: u32) {
         let ts = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Vec<_>, t| {
             result.push(t);
         });
-        println!("{}", ts.len());
 
         for (a, b, c) in ts {
             let r_0 = &hr[&(a, b)];
@@ -267,7 +267,6 @@ pub fn compressed(n: u32) {
                 *result += 1;
             });
 
-            println!("{}", ts);
 
             ts_s += ts;
         }
