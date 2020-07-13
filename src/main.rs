@@ -252,6 +252,7 @@ pub fn compressed(n: u32) {
         let ts = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Vec<_>, t| {
             result.push(t);
         });
+        println!("{}", ts.len());
 
         for (a, b, c) in ts {
             let r_0 = &hr[&(a, b)];
@@ -265,6 +266,8 @@ pub fn compressed(n: u32) {
             let ts = triangle_index(r0_x, r0ks, s0_y, s0ks, t0_x, t0ks, |result: &mut u32, _| {
                 *result += 1;
             });
+
+            println!("{}", ts);
 
             ts_s += ts;
         }
