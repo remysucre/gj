@@ -8,6 +8,7 @@ pub type HashSet<V> = std::collections::HashSet<
         V, std::hash::BuildHasherDefault<AHasher>>;
 
 use crate::relation::*;
+use crate::util::Value;
 
 impl<K: Eq + Hash, R> Index for HashMap<K, Vec<R>> {
     type Key = K;
@@ -50,36 +51,36 @@ impl<K: Eq + Hash, R> Index for HashMap<K, Vec<R>> {
     }
 }
 
-pub fn triangle<'a, R: Default, F: Fn(&mut R, (&u32, &u32, &u32))>(
-    r: &'a [(u32, u32)],
-    s: &'a [(u32, u32)],
-    t: &'a [(u32, u32)],
+pub fn triangle<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
+    r: &'a [(Value, Value)],
+    s: &'a [(Value, Value)],
+    t: &'a [(Value, Value)],
     agg: F,
 ) -> R {
     triangle_otf::
-    <HashMap<u32, Vec<u32>>,
-     HashMap<u32, Vec<()>>,
+    <HashMap<Value, Vec<Value>>,
+     HashMap<Value, Vec<()>>,
      R, F>(r, s, t, agg)
 }
 
-fn lookup(m: &HashMap<u32, HashSet<u32>>, n: u32) -> &HashSet<u32> {
+fn lookup(m: &HashMap<Value, HashSet<Value>>, n: Value) -> &HashSet<Value> {
   // let _guard = flame::start_guard("lookup");
   m.get(&n).unwrap()
 }
 
-fn inter<'a>(x: &'a HashSet<u32>, y: &'a HashSet<u32>) -> std::collections::hash_set::Intersection<'a, u32, std::hash::BuildHasherDefault<AHasher>> {
+fn inter<'a>(x: &'a HashSet<Value>, y: &'a HashSet<Value>) -> std::collections::hash_set::Intersection<'a, Value, std::hash::BuildHasherDefault<AHasher>> {
   // let _guard = flame::start_guard("inter");
   x.intersection(y)
 }
 
 // This version takes hash indexes for r, s, t.
-pub fn triangle_index<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
-    r: HashMap<u32, HashSet<u32>>,
-    r_keys: HashSet<u32>,
-    s: HashMap<u32, HashSet<u32>>,
-    s_keys: HashSet<u32>,
-    t: HashMap<u32, HashSet<u32>>,
-    t_keys: HashSet<u32>,
+pub fn triangle_index<R: Default, F: Fn(&mut R, (Value, Value, Value))>(
+    r: HashMap<Value, HashSet<Value>>,
+    r_keys: HashSet<Value>,
+    s: HashMap<Value, HashSet<Value>>,
+    s_keys: HashSet<Value>,
+    t: HashMap<Value, HashSet<Value>>,
+    t_keys: HashSet<Value>,
     agg: F,
 ) -> R {
     let mut result = R::default();
@@ -105,16 +106,16 @@ pub fn triangle_index<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
     result
 }
 
-pub fn build_hash<F: Fn((u32, u32)) -> (u32, u32)>(
-    r: &[(u32, u32)],
+pub fn build_hash<F: Fn((Value, Value)) -> (Value, Value)>(
+    r: &[(Value, Value)],
     order: F,
-) -> (HashMap<u32, HashSet<u32>>, HashSet<u32>) {
+) -> (HashMap<Value, HashSet<Value>>, HashSet<Value>) {
     let mut r_x = HashMap::default();
     for e in r.iter().copied() {
         let (x, y) = order(e);
         let ys = r_x.entry(x).or_insert_with(HashSet::default);
         ys.insert(y);
     }
-    let r_keys: HashSet<u32> = r_x.keys().copied().collect();
+    let r_keys: HashSet<Value> = r_x.keys().copied().collect();
     (r_x, r_keys)
 }

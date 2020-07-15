@@ -4,7 +4,7 @@ use crate::{util::*, *};
 //------------------
 // Hash summary join
 //------------------
-pub fn community(n: u32) {
+pub fn community(n: Value) {
     // use rand::prelude::*;
     // create scale copies of input graph
     let es0 = read_edges(n as usize).unwrap();
@@ -40,7 +40,7 @@ pub fn community(n: u32) {
 
         println!("hash-join starting");
         let now = Instant::now();
-        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut u32, _| {
+        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Value, _| {
             *result += 1
         });
         println!("hash-join: {}", now.elapsed().as_millis());
@@ -75,7 +75,7 @@ pub fn community(n: u32) {
             let (s0_y, s0ks) = build_hash(s_0, |e| e);
             let (t0_x, t0ks) = build_hash(t_0, |(z, x)| (x, z));
 
-            let ts = triangle_index(r0_x, r0ks, s0_y, s0ks, t0_x, t0ks, |result: &mut u32, _| {
+            let ts = triangle_index(r0_x, r0ks, s0_y, s0ks, t0_x, t0ks, |result: &mut Value, _| {
                 *result += 1;
             });
 
@@ -121,13 +121,13 @@ pub fn community(n: u32) {
             }
         }
         // join xzy and zx
-        ts_h = res.len() as u32;
+        ts_h = res.len() as Value;
         println!("hash-join: {}", now.elapsed().as_millis());
     }
     assert_eq!(ts_h, ts_s);
 }
 
-fn join<R: Copy, S: Copy> (r: &[(R, u32)], s: &[(u32, S)]) -> Vec<((R, S), u32)> {
+fn join<R: Copy, S: Copy> (r: &[(R, Value)], s: &[(Value, S)]) -> Vec<((R, S), Value)> {
     use hashed::HashMap;
     let mut r_y = HashMap::default();
     for (x, y) in r {
@@ -148,7 +148,7 @@ fn join<R: Copy, S: Copy> (r: &[(R, u32)], s: &[(u32, S)]) -> Vec<((R, S), u32)>
 }
 
 
-pub fn compressed(n: u32) {
+pub fn compressed(n: Value) {
     // create scale copies of input graph
     let es0 = read_edges(n as usize).unwrap();
     let mut fac = 0;
@@ -178,7 +178,7 @@ pub fn compressed(n: u32) {
 
         println!("hash-join starting");
         let now = Instant::now();
-        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut u32, _| {
+        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Value, _| {
             *result += 1
         });
         println!("hash-join: {}", now.elapsed().as_millis());
@@ -213,7 +213,7 @@ pub fn compressed(n: u32) {
             let (s0_y, s0ks) = build_hash(s_0, |e| e);
             let (t0_x, t0ks) = build_hash(t_0, |(z, x)| (x, z));
 
-            let ts = triangle_index(r0_x, r0ks, s0_y, s0ks, t0_x, t0ks, |result: &mut u32, _| {
+            let ts = triangle_index(r0_x, r0ks, s0_y, s0ks, t0_x, t0ks, |result: &mut Value, _| {
                 *result += 1;
             });
 
@@ -230,7 +230,7 @@ pub fn compressed(n: u32) {
 //-----------------------------------
 // Triangle query, hashing vs sorting
 //-----------------------------------
-pub fn live_journal(n: u32) {
+pub fn live_journal(n: Value) {
     let mut es = read_edges(n as usize).unwrap();
     let (ts_h, ts_s);
 
@@ -244,7 +244,7 @@ pub fn live_journal(n: u32) {
 
         println!("hash-join starting");
         let now = Instant::now();
-        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut u32, _| {
+        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Value, _| {
             *result += 1
         });
         println!("hash-join: {}", now.elapsed().as_millis());
@@ -263,14 +263,14 @@ pub fn live_journal(n: u32) {
 
         println!("sort-join starting");
         let now = Instant::now();
-        ts_s = triangle_index_xyz(&r_t, &s_t, &t_t, |n: &mut u32, _| *n += 1);
+        ts_s = triangle_index_xyz(&r_t, &s_t, &t_t, |n: &mut Value, _| *n += 1);
         println!("sort-join: {}", now.elapsed().as_millis());
     }
     assert_eq!(ts_h, ts_s);
     println!("{:?}", ts_h);
 }
 
-pub fn worst_case(n: u32) {
+pub fn worst_case(n: Value) {
     let (mut r, mut s, t) = gen_worst_case_relations(n);
     let (ts_h, ts_s);
 
@@ -284,7 +284,7 @@ pub fn worst_case(n: u32) {
 
         println!("hash-join starting");
         let now = Instant::now();
-        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut u32, _| {
+        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Value, _| {
             *result += 1
         });
         println!("hash-join: {}", now.elapsed().as_millis());
@@ -304,14 +304,14 @@ pub fn worst_case(n: u32) {
 
         println!("sort-join starting");
         let now = Instant::now();
-        ts_s = triangle_index_xyz(&r_t, &s_t, &t_t, |n: &mut u32, _| *n += 1);
+        ts_s = triangle_index_xyz(&r_t, &s_t, &t_t, |n: &mut Value, _| *n += 1);
         println!("sort-join: {}", now.elapsed().as_millis());
     }
     assert_eq!(ts_h, ts_s);
     println!("{:?}", ts_h);
 }
 
-pub fn on_the_fly(n: u32) {
+pub fn on_the_fly(n: Value) {
 
     let es = read_edges(n as usize).unwrap();
     let (ts_h, ts_s);
@@ -323,7 +323,7 @@ pub fn on_the_fly(n: u32) {
         let t: Vec<_> = es.iter().copied().map(|(x, y)| (y, x)).collect();
         println!("hash-join starting");
         let now = Instant::now();
-        ts_h = triangle(&es, &es, &t, |result: &mut u32, _| {
+        ts_h = triangle(&es, &es, &t, |result: &mut Value, _| {
             *result += 1
         });
         println!("hash-join: {}", now.elapsed().as_millis());
@@ -336,7 +336,7 @@ pub fn on_the_fly(n: u32) {
         let t: Vec<_> = es.iter().copied().map(|(x, y)| (y, x)).collect();
         println!("sort-join starting");
         let now = Instant::now();
-        ts_s = triangle(&es, &es, &t, |result: &mut u32, _| {
+        ts_s = triangle(&es, &es, &t, |result: &mut Value, _| {
             *result += 1
         });
         println!("sort-join: {}", now.elapsed().as_millis());
@@ -348,7 +348,7 @@ pub fn on_the_fly(n: u32) {
 //----------------------------------
 // Triangle query, variable ordering
 //----------------------------------
-pub fn live_journal_part(n: u32) {
+pub fn live_journal_part(n: Value) {
     let edges = read_edges(n as usize).unwrap();
     let (mut r, mut s, mut t) = partition(&edges);
     let mut ts_s;
@@ -377,31 +377,31 @@ pub fn live_journal_part(n: u32) {
 
         println!("sort-join xyz");
         let now = Instant::now();
-        ts_s = triangle_index_xyz(&r_x, &s_y, &t_x, |n: &mut u32, _| *n += 1);
+        ts_s = triangle_index_xyz(&r_x, &s_y, &t_x, |n: &mut Value, _| *n += 1);
         println!("{}", ts_s);
         println!("sort-join: {}", now.elapsed().as_millis());
 
         println!("sort-join xzy");
         let now = Instant::now();
-        ts_s = triangle_index_xzy(&r_x, &s_z, &t_x, |n: &mut u32, _| *n += 1);
+        ts_s = triangle_index_xzy(&r_x, &s_z, &t_x, |n: &mut Value, _| *n += 1);
         println!("{}", ts_s);
         println!("sort-join: {}", now.elapsed().as_millis());
 
         println!("sort-join yxz");
         let now = Instant::now();
-        ts_s = triangle_index_yxz(&r_y, &s_y, &t_x, |n: &mut u32, _| *n += 1);
+        ts_s = triangle_index_yxz(&r_y, &s_y, &t_x, |n: &mut Value, _| *n += 1);
         println!("{}", ts_s);
         println!("sort-join: {}", now.elapsed().as_millis());
 
         println!("sort-join zxy");
         let now = Instant::now();
-        ts_s = triangle_index_zxy(&r_x, &s_z, &t_z, |n: &mut u32, _| *n += 1);
+        ts_s = triangle_index_zxy(&r_x, &s_z, &t_z, |n: &mut Value, _| *n += 1);
         println!("{}", ts_s);
         println!("sort-join: {}", now.elapsed().as_millis());
 
         println!("sort-join zyx");
         let now = Instant::now();
-        ts_s = triangle_index_zyx(&r_y, &s_z, &t_z, |n: &mut u32, _| *n += 1);
+        ts_s = triangle_index_zyx(&r_y, &s_z, &t_z, |n: &mut Value, _| *n += 1);
         println!("{}", ts_s);
         println!("sort-join: {}", now.elapsed().as_millis());
     }
@@ -426,7 +426,7 @@ pub fn job_main() -> Result<(), Box<dyn std::error::Error>>{
     let t = load_table(title);
 
     // kid
-    let mut k: Vec<u32> = k.iter().filter_map(|sr| {
+    let mut k: Vec<Value> = k.iter().filter_map(|sr| {
         if &sr[1] == "character-name-in-title" {
             sr[0].parse().ok()
         } else {
@@ -434,7 +434,7 @@ pub fn job_main() -> Result<(), Box<dyn std::error::Error>>{
         }
     }).collect();
     // cid
-    let mut cn: Vec<u32> = cn.iter().filter_map(|sr| {
+    let mut cn: Vec<Value> = cn.iter().filter_map(|sr| {
         if &sr[2] == "[de]" {
             sr[0].parse().ok()
         } else {
@@ -442,11 +442,11 @@ pub fn job_main() -> Result<(), Box<dyn std::error::Error>>{
         }
     }).collect();
     // mid, cid
-    let mut mc: Vec<(u32, u32)> = mc.iter().map(|sr| (sr[1].parse().unwrap(), sr[2].parse().unwrap())).collect();
+    let mut mc: Vec<(Value, Value)> = mc.iter().map(|sr| (sr[1].parse().unwrap(), sr[2].parse().unwrap())).collect();
     // kid, mid
-    let mut mk: Vec<(u32, u32)> = mk.iter().map(|sr| (sr[2].parse().unwrap(), sr[1].parse().unwrap())).collect();
+    let mut mk: Vec<(Value, Value)> = mk.iter().map(|sr| (sr[2].parse().unwrap(), sr[1].parse().unwrap())).collect();
     // mid
-    let mut t: Vec<u32> = t.iter().map(|sr| sr[0].parse().unwrap()).collect();
+    let mut t: Vec<Value> = t.iter().map(|sr| sr[0].parse().unwrap()).collect();
 
     println!("{:?}", (
         cn.len(),
@@ -521,6 +521,6 @@ fn load_table(f: String) -> Vec<Vec<String>> {
 }
 
 
-fn compare<'r, 's>((x_1, y_1): &'r (u32, u32), (x_2, y_2): &'s (u32, u32)) -> std::cmp::Ordering {
+fn compare<'r, 's>((x_1, y_1): &'r (Value, Value), (x_2, y_2): &'s (Value, Value)) -> std::cmp::Ordering {
     x_1.cmp(x_2).then(y_1.cmp(y_2))
 }

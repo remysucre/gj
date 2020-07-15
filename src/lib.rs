@@ -4,6 +4,7 @@ pub mod util;
 pub mod experiments;
 
 pub mod relation {
+    use crate::util::Value;
 
     pub trait Index {
         // NOTE Key can be a reference
@@ -29,16 +30,16 @@ pub mod relation {
 
     // create indexes on the fly
     pub fn triangle_otf<'a, IdxLeft, IdxUnit, R, F>(
-        r: &'a [(u32, u32)],
-        s: &'a [(u32, u32)],
-        t: &'a [(u32, u32)],
+        r: &'a [(Value, Value)],
+        s: &'a [(Value, Value)],
+        t: &'a [(Value, Value)],
         agg: F,
     ) -> R
     where
-        IdxLeft: Index<Key = u32, Res = u32>,
-        IdxUnit: Index<Key = u32, Res = ()>,
+        IdxLeft: Index<Key = Value, Res = Value>,
+        IdxUnit: Index<Key = Value, Res = ()>,
         R: Default,
-        F: Fn(&mut R, (&u32, &u32, &u32)),
+        F: Fn(&mut R, (&Value, &Value, &Value)),
     {
         let mut result = R::default();
         // create indexes on r, t, s

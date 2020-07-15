@@ -3,9 +3,11 @@
 // http://www.cse.buffalo.edu/~hungngo/papers/wcoj-gems.pptx
 use rand::{thread_rng, seq::SliceRandom};
 
-type Rel = Vec<(u32, u32)>;
+pub type Value = u64;
 
-pub fn gen_worst_case_relations(n: u32) -> (Rel, Rel, Rel) {
+type Rel = Vec<(Value, Value)>;
+
+pub fn gen_worst_case_relations(n: Value) -> (Rel, Rel, Rel) {
     assert!(n > 0);
     // 3N nodes
     let xs: Vec<_> = (0..n).collect();
@@ -37,7 +39,7 @@ pub fn gen_worst_case_relations(n: u32) -> (Rel, Rel, Rel) {
 }
 
 // Read graph from TSV file containing an edge per line
-pub fn read_edges(n: usize) -> Result<Vec<(u32, u32)>, Box<dyn std::error::Error>> {
+pub fn read_edges(n: usize) -> Result<Vec<(Value, Value)>, Box<dyn std::error::Error>> {
     use csv::ReaderBuilder;
     let mut rdr = ReaderBuilder::new()
         .delimiter(b'\t')
@@ -50,7 +52,7 @@ pub fn read_edges(n: usize) -> Result<Vec<(u32, u32)>, Box<dyn std::error::Error
     Ok(es)
 }
 
-pub fn partition(es: &[(u32, u32)]) -> (Vec<(u32, u32)>, Vec<(u32, u32)>, Vec<(u32, u32)>) {
+pub fn partition(es: &[(Value, Value)]) -> (Vec<(Value, Value)>, Vec<(Value, Value)>, Vec<(Value, Value)>) {
     let l = es.len();
     (es[0..l/100].to_vec(), es[l/100..l*2/100].to_vec(), es[l*2/100..].to_vec())
 }

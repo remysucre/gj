@@ -1,4 +1,5 @@
 use crate::relation::*;
+use crate::util::Value;
 
 // Taken from Frank McSherry's blog Worst-case optimal joins, in dataflow
 // advances slice to the first element not less than value
@@ -25,8 +26,8 @@ pub fn gallop<T>(mut slice: &[T], mut cmp: impl FnMut(&T) -> bool) -> &[T] {
     slice
 }
 
-fn sorted(s: &[u32]) -> bool {
-    let mut prev = u32::MIN;
+fn sorted(s: &[Value]) -> bool {
+    let mut prev = Value::MIN;
     for n in s {
         if n < &prev {
             return false;
@@ -38,7 +39,7 @@ fn sorted(s: &[u32]) -> bool {
 }
 
 // TODO make these into 1 intersect with logic
-fn intersect_v_v(r: &[u32], s: &[u32]) -> Vec<u32> {
+fn intersect_v_v(r: &[Value], s: &[Value]) -> Vec<Value> {
     debug_assert!(sorted(r) && sorted(s));
     let mut r = r;
     let mut s = s;
@@ -57,7 +58,7 @@ fn intersect_v_v(r: &[u32], s: &[u32]) -> Vec<u32> {
         .collect()
 }
 
-fn intersect_v_e<'a>(r: &'a [u32], s: &'a [(u32, Vec<u32>)]) -> Vec<(u32, &'a Vec<u32>)> {
+fn intersect_v_e<'a>(r: &'a [Value], s: &'a [(Value, Vec<Value>)]) -> Vec<(Value, &'a Vec<Value>)> {
     let mut s = s;
     if r.len() <= s.len() {
     r.iter()
@@ -74,7 +75,7 @@ fn intersect_v_e<'a>(r: &'a [u32], s: &'a [(u32, Vec<u32>)]) -> Vec<(u32, &'a Ve
         intersect_e_v(s, r)
     }
 }
-fn intersect_e_v<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [u32]) -> Vec<(u32, &'a Vec<u32>)> {
+fn intersect_e_v<'a>(r: &'a [(Value, Vec<Value>)], s: &'a [Value]) -> Vec<(Value, &'a Vec<Value>)> {
     let mut s = s;
     if r.len() <= s.len() {
     r.iter()
@@ -92,7 +93,7 @@ fn intersect_e_v<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [u32]) -> Vec<(u32, &'a Ve
     }
 }
 
-fn intersect_e_e<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [(u32, Vec<u32>)]) -> Vec<(u32, &'a Vec<u32>, &'a Vec<u32>)> {
+fn intersect_e_e<'a>(r: &'a [(Value, Vec<Value>)], s: &'a [(Value, Vec<Value>)]) -> Vec<(Value, &'a Vec<Value>, &'a Vec<Value>)> {
     let mut r = r;
     let mut s = s;
     let mut swapped = false;
@@ -117,7 +118,7 @@ fn intersect_e_e<'a>(r: &'a [(u32, Vec<u32>)], s: &'a [(u32, Vec<u32>)]) -> Vec<
 }
 
 
-fn intersect_v_v_v<'a>(mut r: &'a [u32], mut s: &'a [u32], mut t: &'a[u32]) -> Vec<u32> {
+fn intersect_v_v_v<'a>(mut r: &'a [Value], mut s: &'a [Value], mut t: &'a[Value]) -> Vec<Value> {
     if r.len() > s.len() {
         std::mem::swap(&mut r, &mut s);
     }
@@ -138,7 +139,7 @@ fn intersect_v_v_v<'a>(mut r: &'a [u32], mut s: &'a [u32], mut t: &'a[u32]) -> V
         .collect()
 }
 
-fn intersect_e_e_v<'a>(r: &'a [(u32, Vec<u32>)], mut s: &'a [(u32, Vec<u32>)], mut t: &'a[u32]) -> Vec<(u32, &'a Vec<u32>, &'a Vec<u32>)> {
+fn intersect_e_e_v<'a>(r: &'a [(Value, Vec<Value>)], mut s: &'a [(Value, Vec<Value>)], mut t: &'a[Value]) -> Vec<(Value, &'a Vec<Value>, &'a Vec<Value>)> {
     r.iter()
         .flat_map(|(x_1, y)| {
             s = gallop(s, |(x_2, _z)| x_2 < x_1);
@@ -153,7 +154,7 @@ fn intersect_e_e_v<'a>(r: &'a [(u32, Vec<u32>)], mut s: &'a [(u32, Vec<u32>)], m
         .collect()
 }
 
-fn intersect_v_e_v<'a>(r: &'a [u32], mut s: &'a [(u32, Vec<u32>)], mut t: &'a[u32]) -> Vec<(u32, &'a Vec<u32>)> {
+fn intersect_v_e_v<'a>(r: &'a [Value], mut s: &'a [(Value, Vec<Value>)], mut t: &'a[Value]) -> Vec<(Value, &'a Vec<Value>)> {
     r.iter()
         .flat_map(|x_1| {
             s = gallop(s, |(x_2, _z)| x_2 < x_1);
@@ -169,11 +170,11 @@ fn intersect_v_e_v<'a>(r: &'a [u32], mut s: &'a [(u32, Vec<u32>)], mut t: &'a[u3
 }
 
 pub fn imdb_kmc(
-    k: &[u32],
-    cn: &[u32],
-    mc: &[(u32, Vec<u32>)],
-    mk: &[(u32, Vec<u32>)],
-    t: &[u32],
+    k: &[Value],
+    cn: &[Value],
+    mc: &[(Value, Vec<Value>)],
+    mk: &[(Value, Vec<Value>)],
+    t: &[Value],
 ) {
     let mut count = 0;
     for (_k, mk_k) in intersect_v_e(k, mk) {
@@ -187,11 +188,11 @@ pub fn imdb_kmc(
 }
 
 pub fn imdb_kcm(
-    k: &[u32],
-    cn: &[u32],
-    mc: &[(u32, Vec<u32>)],
-    mk: &[(u32, Vec<u32>)],
-    t: &[u32],
+    k: &[Value],
+    cn: &[Value],
+    mc: &[(Value, Vec<Value>)],
+    mk: &[(Value, Vec<Value>)],
+    t: &[Value],
 ) {
     let mut count = 0;
     for (_k, mk_k) in intersect_v_e(k, mk) {
@@ -205,11 +206,11 @@ pub fn imdb_kcm(
 }
 
 pub fn imdb_mkc(
-    k: &[u32],
-    cn: &[u32],
-    mc: &[(u32, Vec<u32>)],
-    mk: &[(u32, Vec<u32>)],
-    t: &[u32],
+    k: &[Value],
+    cn: &[Value],
+    mc: &[(Value, Vec<Value>)],
+    mk: &[(Value, Vec<Value>)],
+    t: &[Value],
 ) {
     let mut count = 0;
     for (_m, mc_m, mk_m) in intersect_e_e_v(mc, mk, t) {
@@ -223,11 +224,11 @@ pub fn imdb_mkc(
 }
 
 pub fn imdb_mck(
-    k: &[u32],
-    cn: &[u32],
-    mc: &[(u32, Vec<u32>)],
-    mk: &[(u32, Vec<u32>)],
-    t: &[u32],
+    k: &[Value],
+    cn: &[Value],
+    mc: &[(Value, Vec<Value>)],
+    mk: &[(Value, Vec<Value>)],
+    t: &[Value],
 ) {
     let mut count = 0;
     for (_m, mc_m, mk_m) in intersect_e_e_v(mc, mk, t) {
@@ -241,11 +242,11 @@ pub fn imdb_mck(
 }
 
 pub fn imdb_cmk(
-    k: &[u32],
-    cn: &[u32],
-    mc: &[(u32, Vec<u32>)],
-    mk: &[(u32, Vec<u32>)],
-    t: &[u32],
+    k: &[Value],
+    cn: &[Value],
+    mc: &[(Value, Vec<Value>)],
+    mk: &[(Value, Vec<Value>)],
+    t: &[Value],
 ) {
     let mut count = 0;
     for (_cid, mc_c) in intersect_v_e(cn, mc) {
@@ -259,11 +260,11 @@ pub fn imdb_cmk(
 }
 
 pub fn imdb_ckm(
-    k: &[u32],
-    cn: &[u32],
-    mc: &[(u32, Vec<u32>)],
-    mk: &[(u32, Vec<u32>)],
-    t: &[u32],
+    k: &[Value],
+    cn: &[Value],
+    mc: &[(Value, Vec<Value>)],
+    mk: &[(Value, Vec<Value>)],
+    t: &[Value],
 ) {
     let mut count = 0;
     for (_cid, mc_c) in intersect_v_e(cn, mc) {
@@ -276,10 +277,10 @@ pub fn imdb_ckm(
     println!("{}", count);
 }
 
-pub fn triangle_index_xyz<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
-    r: &[(u32, Vec<u32>)],
-    s: &[(u32, Vec<u32>)],
-    t: &[(u32, Vec<u32>)],
+pub fn triangle_index_xyz<R: Default, F: Fn(&mut R, (Value, Value, Value))>(
+    r: &[(Value, Vec<Value>)],
+    s: &[(Value, Vec<Value>)],
+    t: &[(Value, Vec<Value>)],
     agg: F,
 ) -> R {
     let mut result = R::default();
@@ -295,10 +296,10 @@ pub fn triangle_index_xyz<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
 }
 
 // r, t indexed on x, s indexed on z
-pub fn triangle_index_xzy<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
-    r: &[(u32, Vec<u32>)],
-    s: &[(u32, Vec<u32>)],
-    t: &[(u32, Vec<u32>)],
+pub fn triangle_index_xzy<R: Default, F: Fn(&mut R, (Value, Value, Value))>(
+    r: &[(Value, Vec<Value>)],
+    s: &[(Value, Vec<Value>)],
+    t: &[(Value, Vec<Value>)],
     agg: F,
 ) -> R {
     let mut result = R::default();
@@ -314,10 +315,10 @@ pub fn triangle_index_xzy<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
 }
 
 // r, s indexed on y, t indexed on x
-pub fn triangle_index_yxz<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
-    r: &[(u32, Vec<u32>)],
-    s: &[(u32, Vec<u32>)],
-    t: &[(u32, Vec<u32>)],
+pub fn triangle_index_yxz<R: Default, F: Fn(&mut R, (Value, Value, Value))>(
+    r: &[(Value, Vec<Value>)],
+    s: &[(Value, Vec<Value>)],
+    t: &[(Value, Vec<Value>)],
     agg: F,
 ) -> R {
     let mut result = R::default();
@@ -333,10 +334,10 @@ pub fn triangle_index_yxz<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
 }
 
 // r, t indexed on x, s indexed on z
-pub fn triangle_index_yzx<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
-    r: &[(u32, Vec<u32>)],
-    s: &[(u32, Vec<u32>)],
-    t: &[(u32, Vec<u32>)],
+pub fn triangle_index_yzx<R: Default, F: Fn(&mut R, (Value, Value, Value))>(
+    r: &[(Value, Vec<Value>)],
+    s: &[(Value, Vec<Value>)],
+    t: &[(Value, Vec<Value>)],
     agg: F,
 ) -> R {
     let mut result = R::default();
@@ -352,10 +353,10 @@ pub fn triangle_index_yzx<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
 }
 
 // r, t indexed on x, s indexed on z
-pub fn triangle_index_zxy<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
-    r: &[(u32, Vec<u32>)],
-    s: &[(u32, Vec<u32>)],
-    t: &[(u32, Vec<u32>)],
+pub fn triangle_index_zxy<R: Default, F: Fn(&mut R, (Value, Value, Value))>(
+    r: &[(Value, Vec<Value>)],
+    s: &[(Value, Vec<Value>)],
+    t: &[(Value, Vec<Value>)],
     agg: F,
 ) -> R {
     let mut result = R::default();
@@ -371,10 +372,10 @@ pub fn triangle_index_zxy<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
 }
 
 // r, t indexed on x, s indexed on z
-pub fn triangle_index_zyx<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
-    r: &[(u32, Vec<u32>)],
-    s: &[(u32, Vec<u32>)],
-    t: &[(u32, Vec<u32>)],
+pub fn triangle_index_zyx<R: Default, F: Fn(&mut R, (Value, Value, Value))>(
+    r: &[(Value, Vec<Value>)],
+    s: &[(Value, Vec<Value>)],
+    t: &[(Value, Vec<Value>)],
     agg: F,
 ) -> R {
     let mut result = R::default();
@@ -391,8 +392,8 @@ pub fn triangle_index_zyx<R: Default, F: Fn(&mut R, (u32, u32, u32))>(
 
 
 // NOTE should be sorted
-pub fn to_trie(r: &[(u32, u32)]) -> Vec<(u32, Vec<u32>)> {
-    let mut result: Vec<(u32, Vec<u32>)> = vec![];
+pub fn to_trie(r: &[(Value, Value)]) -> Vec<(Value, Vec<Value>)> {
+    let mut result: Vec<(Value, Vec<Value>)> = vec![];
     for (x, y) in r {
         if result.is_empty() || result.last().unwrap().0 != *x {
             result.push((*x, vec![*y]));
@@ -465,14 +466,14 @@ impl<'t, K: Eq + Ord, R> Index for Trie<K, R> {
 }
 
 
-pub fn triangle<'a, R: Default, F: Fn(&mut R, (&u32, &u32, &u32))>(
-    r: &'a [(u32, u32)],
-    s: &'a [(u32, u32)],
-    t: &'a [(u32, u32)],
+pub fn triangle<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
+    r: &'a [(Value, Value)],
+    s: &'a [(Value, Value)],
+    t: &'a [(Value, Value)],
     agg: F,
 ) -> R {
     triangle_otf::
-    <Trie<u32, u32>,
-     Trie<u32, ()>,
+    <Trie<Value, Value>,
+     Trie<Value, ()>,
      R, F>(r, s, t, agg)
 }
