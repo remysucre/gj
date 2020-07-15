@@ -2,9 +2,9 @@
 use ahash::AHasher;
 use std::hash::Hash;
 
-type HashMap<K, V> = std::collections::HashMap<
+pub type HashMap<K, V> = std::collections::HashMap<
         K, V, std::hash::BuildHasherDefault<AHasher>>;
-type HashSet<V> = std::collections::HashSet<
+pub type HashSet<V> = std::collections::HashSet<
         V, std::hash::BuildHasherDefault<AHasher>>;
 
 use crate::relation::*;
