@@ -18,9 +18,9 @@ pub fn community(n: Value) {
     let mut es = vec![];
     for i in 0..scale {
         for (x, y) in es0.iter() {
-            if rand::random() {
+            if rand::random::<f64>() < 0.3 {
                 es.push((*x + i * fac, *y + i * fac));
-                if rand::random() && rand::random() && rand::random() {
+                if rand::random::<f64>() < 0.1 {
                     es.push((*x + i * fac, *y + i * fac + fac));
                 }
             }
