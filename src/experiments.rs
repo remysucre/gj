@@ -4,7 +4,7 @@ use crate::{util::*, *};
 //------------------
 // Hash summary join
 //------------------
-pub fn community(n: Value) {
+pub fn community(n: Value, sample: f64, cross: f64) {
     // use rand::prelude::*;
     // create scale copies of input graph
     let es0 = read_edges(n as usize).unwrap();
@@ -18,9 +18,9 @@ pub fn community(n: Value) {
     let mut es = vec![];
     for i in 0..scale {
         for (x, y) in es0.iter() {
-            if rand::random::<f64>() < 0.3 {
+            if rand::random::<f64>() < sample {
                 es.push((*x + i * fac, *y + i * fac));
-                if rand::random::<f64>() < 0.1 {
+                if rand::random::<f64>() < cross {
                     es.push((*x + i * fac, *y + i * fac + fac));
                 }
             }
