@@ -66,20 +66,17 @@ pub fn community(es0: Vec<(Value, Value)>, sample: f64, cross: f64) {
         });
 
         for (a, b, c) in ts {
-            let r_0 = &hr[&(a, b)];
-            let s_0 = &hr[&(b, c)];
-            let t_0 = &hr[&(c, a)];
+            if let (Some(r_0), Some(s_0), Some(t_0)) = (hr.get(&(a,b)), hr.get(&(b,c)), hr.get(&(c, a))) {
+                let (r0_x, r0ks) = build_hash(r_0, |e| e);
+                let (s0_y, s0ks) = build_hash(s_0, |e| e);
+                let (t0_x, t0ks) = build_hash(t_0, |(z, x)| (x, z));
 
-            let (r0_x, r0ks) = build_hash(r_0, |e| e);
-            let (s0_y, s0ks) = build_hash(s_0, |e| e);
-            let (t0_x, t0ks) = build_hash(t_0, |(z, x)| (x, z));
+                let ts = triangle_index(r0_x, r0ks, s0_y, s0ks, t0_x, t0ks, |result: &mut Value, _| {
+                    *result += 1;
+                });
 
-            let ts = triangle_index(r0_x, r0ks, s0_y, s0ks, t0_x, t0ks, |result: &mut Value, _| {
-                *result += 1;
-            });
-
-
-            ts_s += ts;
+                ts_s += ts;
+            }
         }
         println!("generic-summary: {}", now.elapsed().as_millis());
     }
