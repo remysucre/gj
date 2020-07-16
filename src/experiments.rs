@@ -4,10 +4,10 @@ use crate::{util::*, *};
 //------------------
 // Hash summary join
 //------------------
-pub fn community(n: Value, sample: f64, cross: f64) {
+pub fn community(es0: Vec<(Value, Value)>, sample: f64, cross: f64) {
     // use rand::prelude::*;
     // create scale copies of input graph
-    let es0 = read_edges(n as usize).unwrap();
+    // let es0 = read_edges(n as usize).unwrap();
     let mut fac = 0;
     for (x, y) in es0.iter() {
         fac = std::cmp::max(fac, std::cmp::max(*x, *y));
