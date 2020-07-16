@@ -1,0 +1,600 @@
+sample 0.1 cross 0.1
+hash-join starting
+generic: 389
+generic-summary: 23
+pairwise-summary: 147
+pairwise: 335
+sample 0.1 cross 0.2
+hash-join starting
+generic: 414
+generic-summary: 24
+pairwise-summary: 158
+pairwise: 373
+sample 0.1 cross 0.3
+hash-join starting
+generic: 506
+generic-summary: 24
+pairwise-summary: 163
+pairwise: 388
+sample 0.1 cross 0.4
+hash-join starting
+generic: 532
+generic-summary: 25
+pairwise-summary: 173
+pairwise: 414
+sample 0.1 cross 0.5
+hash-join starting
+generic: 477
+generic-summary: 26
+pairwise-summary: 180
+pairwise: 430
+sample 0.1 cross 0.6
+hash-join starting
+generic: 602
+generic-summary: 27
+pairwise-summary: 188
+pairwise: 452
+sample 0.1 cross 0.7
+hash-join starting
+generic: 528
+generic-summary: 27
+pairwise-summary: 197
+pairwise: 464
+sample 0.1 cross 0.8
+hash-join starting
+generic: 638
+generic-summary: 28
+pairwise-summary: 203
+pairwise: 513
+sample 0.1 cross 0.9
+hash-join starting
+generic: 566
+generic-summary: 28
+pairwise-summary: 211
+pairwise: 558
+sample 0.1 cross 1
+hash-join starting
+generic: 685
+generic-summary: 28
+pairwise-summary: 214
+pairwise: 793
+sample 0.2 cross 0.1
+hash-join starting
+generic: 849
+generic-summary: 30
+pairwise-summary: 274
+pairwise: 844
+sample 0.2 cross 0.2
+hash-join starting
+generic: 854
+generic-summary: 31
+pairwise-summary: 283
+pairwise: 905
+sample 0.2 cross 0.3
+hash-join starting
+generic: 1086
+generic-summary: 33
+pairwise-summary: 308
+pairwise: 982
+sample 0.2 cross 0.4
+hash-join starting
+generic: 1134
+generic-summary: 34
+pairwise-summary: 314
+pairwise: 1033
+sample 0.2 cross 0.5
+hash-join starting
+generic: 1215
+generic-summary: 36
+pairwise-summary: 335
+pairwise: 1075
+sample 0.2 cross 0.6
+hash-join starting
+generic: 1259
+generic-summary: 37
+pairwise-summary: 349
+pairwise: 1149
+sample 0.2 cross 0.7
+hash-join starting
+generic: 1108
+generic-summary: 37
+pairwise-summary: 372
+pairwise: 1225
+sample 0.2 cross 0.8
+hash-join starting
+generic: 1358
+generic-summary: 37
+pairwise-summary: 382
+pairwise: 1291
+sample 0.2 cross 0.9
+hash-join starting
+generic: 1356
+generic-summary: 37
+pairwise-summary: 398
+pairwise: 1338
+sample 0.2 cross 1
+hash-join starting
+generic: 1279
+generic-summary: 37
+pairwise-summary: 412
+pairwise: 1440
+sample 0.3 cross 0.1
+hash-join starting
+generic: 1590
+generic-summary: 39
+pairwise-summary: 390
+pairwise: 1177
+sample 0.3 cross 0.2
+hash-join starting
+generic: 1592
+generic-summary: 39
+pairwise-summary: 412
+pairwise: 1290
+sample 0.3 cross 0.3
+hash-join starting
+generic: 1528
+generic-summary: 38
+pairwise-summary: 435
+pairwise: 1430
+sample 0.3 cross 0.4
+hash-join starting
+generic: 1650
+generic-summary: 38
+pairwise-summary: 456
+pairwise: 2004
+sample 0.3 cross 0.5
+hash-join starting
+generic: 1795
+generic-summary: 39
+pairwise-summary: 473
+pairwise: 2140
+sample 0.3 cross 0.6
+hash-join starting
+generic: 1675
+generic-summary: 39
+pairwise-summary: 489
+pairwise: 2241
+sample 0.3 cross 0.7
+hash-join starting
+generic: 1836
+generic-summary: 42
+pairwise-summary: 502
+pairwise: 2303
+sample 0.3 cross 0.8
+hash-join starting
+generic: 1909
+generic-summary: 42
+pairwise-summary: 529
+pairwise: 2440
+sample 0.3 cross 0.9
+hash-join starting
+generic: 2052
+generic-summary: 43
+pairwise-summary: 547
+pairwise: 2556
+sample 0.3 cross 1
+hash-join starting
+generic: 2113
+generic-summary: 43
+pairwise-summary: 572
+pairwise: 2665
+sample 0.4 cross 0.1
+hash-join starting
+generic: 1939
+generic-summary: 40
+pairwise-summary: 490
+pairwise: 2112
+sample 0.4 cross 0.2
+hash-join starting
+generic: 2189
+generic-summary: 40
+pairwise-summary: 510
+pairwise: 2230
+sample 0.4 cross 0.3
+hash-join starting
+generic: 2048
+generic-summary: 42
+pairwise-summary: 531
+pairwise: 2371
+sample 0.4 cross 0.4
+hash-join starting
+generic: 2300
+generic-summary: 43
+pairwise-summary: 563
+pairwise: 2564
+sample 0.4 cross 0.5
+hash-join starting
+generic: 2419
+generic-summary: 44
+pairwise-summary: 589
+pairwise: 2623
+sample 0.4 cross 0.6
+hash-join starting
+generic: 2377
+generic-summary: 44
+pairwise-summary: 628
+pairwise: 2830
+sample 0.4 cross 0.7
+hash-join starting
+generic: 2628
+generic-summary: 45
+pairwise-summary: 655
+pairwise: 2956
+sample 0.4 cross 0.8
+hash-join starting
+generic: 2596
+generic-summary: 44
+pairwise-summary: 685
+pairwise: 3106
+sample 0.4 cross 0.9
+hash-join starting
+generic: 2676
+generic-summary: 46
+pairwise-summary: 715
+pairwise: 3254
+sample 0.4 cross 1
+hash-join starting
+generic: 2781
+generic-summary: 45
+pairwise-summary: 751
+pairwise: 3362
+sample 0.5 cross 0.1
+hash-join starting
+generic: 2368
+generic-summary: 45
+pairwise-summary: 576
+pairwise: 2541
+sample 0.5 cross 0.2
+hash-join starting
+generic: 2599
+generic-summary: 46
+pairwise-summary: 603
+pairwise: 2708
+sample 0.5 cross 0.3
+hash-join starting
+generic: 2713
+generic-summary: 45
+pairwise-summary: 649
+pairwise: 2841
+sample 0.5 cross 0.4
+hash-join starting
+generic: 2921
+generic-summary: 46
+pairwise-summary: 696
+pairwise: 3023
+sample 0.5 cross 0.5
+hash-join starting
+generic: 2909
+generic-summary: 46
+pairwise-summary: 726
+pairwise: 3195
+sample 0.5 cross 0.6
+hash-join starting
+generic: 3080
+generic-summary: 47
+pairwise-summary: 773
+pairwise: 3459
+sample 0.5 cross 0.7
+hash-join starting
+generic: 3181
+generic-summary: 47
+pairwise-summary: 791
+pairwise: 3697
+sample 0.5 cross 0.8
+hash-join starting
+generic: 3199
+generic-summary: 48
+pairwise-summary: 808
+pairwise: 3803
+sample 0.5 cross 0.9
+hash-join starting
+generic: 3128
+generic-summary: 48
+pairwise-summary: 842
+pairwise: 4006
+sample 0.5 cross 1
+hash-join starting
+generic: 3249
+generic-summary: 48
+pairwise-summary: 871
+pairwise: 4222
+sample 0.6 cross 0.1
+hash-join starting
+generic: 2948
+generic-summary: 50
+pairwise-summary: 707
+pairwise: 2926
+sample 0.6 cross 0.2
+hash-join starting
+generic: 3236
+generic-summary: 48
+pairwise-summary: 757
+pairwise: 3221
+sample 0.6 cross 0.3
+hash-join starting
+generic: 3444
+generic-summary: 49
+pairwise-summary: 772
+pairwise: 3413
+sample 0.6 cross 0.4
+hash-join starting
+generic: 3380
+generic-summary: 49
+pairwise-summary: 798
+pairwise: 3690
+sample 0.6 cross 0.5
+hash-join starting
+generic: 3393
+generic-summary: 51
+pairwise-summary: 825
+pairwise: 3825
+sample 0.6 cross 0.6
+hash-join starting
+generic: 3601
+generic-summary: 52
+pairwise-summary: 863
+pairwise: 4067
+sample 0.6 cross 0.7
+hash-join starting
+generic: 3898
+generic-summary: 52
+pairwise-summary: 885
+pairwise: 4372
+sample 0.6 cross 0.8
+hash-join starting
+generic: 3757
+generic-summary: 53
+pairwise-summary: 924
+pairwise: 5602
+sample 0.6 cross 0.9
+hash-join starting
+generic: 3800
+generic-summary: 53
+pairwise-summary: 955
+pairwise: 5797
+sample 0.6 cross 1
+hash-join starting
+generic: 3799
+generic-summary: 53
+pairwise-summary: 1010
+pairwise: 6152
+sample 0.7 cross 0.1
+hash-join starting
+generic: 3394
+generic-summary: 49
+pairwise-summary: 778
+pairwise: 3426
+sample 0.7 cross 0.2
+hash-join starting
+generic: 3576
+generic-summary: 50
+pairwise-summary: 815
+pairwise: 3816
+sample 0.7 cross 0.3
+hash-join starting
+generic: 3865
+generic-summary: 51
+pairwise-summary: 871
+pairwise: 4064
+sample 0.7 cross 0.4
+hash-join starting
+generic: 3735
+generic-summary: 53
+pairwise-summary: 880
+pairwise: 5275
+sample 0.7 cross 0.5
+hash-join starting
+generic: 3507
+generic-summary: 54
+pairwise-summary: 914
+pairwise: 5606
+sample 0.7 cross 0.6
+hash-join starting
+generic: 4256
+generic-summary: 55
+pairwise-summary: 956
+pairwise: 5865
+sample 0.7 cross 0.7
+hash-join starting
+generic: 4308
+generic-summary: 55
+pairwise-summary: 997
+pairwise: 6194
+sample 0.7 cross 0.8
+hash-join starting
+generic: 4847
+generic-summary: 55
+pairwise-summary: 1064
+pairwise: 6533
+sample 0.7 cross 0.9
+hash-join starting
+generic: 4673
+generic-summary: 54
+pairwise-summary: 1134
+pairwise: 6623
+sample 0.7 cross 1
+hash-join starting
+generic: 4405
+generic-summary: 54
+pairwise-summary: 1194
+pairwise: 6889
+sample 0.8 cross 0.1
+hash-join starting
+generic: 4298
+generic-summary: 52
+pairwise-summary: 841
+pairwise: 5018
+sample 0.8 cross 0.2
+hash-join starting
+generic: 4507
+generic-summary: 53
+pairwise-summary: 894
+pairwise: 5322
+sample 0.8 cross 0.3
+hash-join starting
+generic: 4376
+generic-summary: 55
+pairwise-summary: 933
+pairwise: 5562
+sample 0.8 cross 0.4
+hash-join starting
+generic: 4077
+generic-summary: 56
+pairwise-summary: 976
+pairwise: 5859
+sample 0.8 cross 0.5
+hash-join starting
+generic: 4861
+generic-summary: 56
+pairwise-summary: 1028
+pairwise: 6286
+sample 0.8 cross 0.6
+hash-join starting
+generic: 4712
+generic-summary: 56
+pairwise-summary: 1092
+pairwise: 6434
+sample 0.8 cross 0.7
+hash-join starting
+generic: 4891
+generic-summary: 56
+pairwise-summary: 1164
+pairwise: 6770
+sample 0.8 cross 0.8
+hash-join starting
+generic: 5118
+generic-summary: 56
+pairwise-summary: 1236
+pairwise: 7080
+sample 0.8 cross 0.9
+hash-join starting
+generic: 5329
+generic-summary: 57
+pairwise-summary: 1261
+pairwise: 7379
+sample 0.8 cross 1
+hash-join starting
+generic: 5283
+generic-summary: 58
+pairwise-summary: 1313
+pairwise: 7924
+sample 0.9 cross 0.1
+hash-join starting
+generic: 4627
+generic-summary: 53
+pairwise-summary: 915
+pairwise: 5469
+sample 0.9 cross 0.2
+hash-join starting
+generic: 5107
+generic-summary: 55
+pairwise-summary: 957
+pairwise: 5854
+sample 0.9 cross 0.3
+hash-join starting
+generic: 4970
+generic-summary: 57
+pairwise-summary: 1031
+pairwise: 6273
+sample 0.9 cross 0.4
+hash-join starting
+generic: 4725
+generic-summary: 59
+pairwise-summary: 1116
+pairwise: 6454
+sample 0.9 cross 0.5
+hash-join starting
+generic: 4882
+generic-summary: 57
+pairwise-summary: 1176
+pairwise: 6892
+sample 0.9 cross 0.6
+hash-join starting
+generic: 5518
+generic-summary: 59
+pairwise-summary: 1239
+pairwise: 7162
+sample 0.9 cross 0.7
+hash-join starting
+generic: 5548
+generic-summary: 60
+pairwise-summary: 1290
+pairwise: 7556
+sample 0.9 cross 0.8
+hash-join starting
+generic: 5763
+generic-summary: 62
+pairwise-summary: 1313
+pairwise: 8100
+sample 0.9 cross 0.9
+hash-join starting
+generic: 5022
+generic-summary: 60
+pairwise-summary: 1344
+pairwise: 8353
+sample 0.9 cross 1
+hash-join starting
+generic: 6063
+generic-summary: 60
+pairwise-summary: 1397
+pairwise: 8637
+sample 1 cross 0.1
+hash-join starting
+generic: 5134
+generic-summary: 56
+pairwise-summary: 949
+pairwise: 5902
+sample 1 cross 0.2
+hash-join starting
+generic: 5478
+generic-summary: 59
+pairwise-summary: 1010
+pairwise: 6429
+sample 1 cross 0.3
+hash-join starting
+generic: 5384
+generic-summary: 59
+pairwise-summary: 1125
+pairwise: 6739
+sample 1 cross 0.4
+hash-join starting
+generic: 5207
+generic-summary: 59
+pairwise-summary: 1223
+pairwise: 7129
+sample 1 cross 0.5
+hash-join starting
+generic: 5402
+generic-summary: 59
+pairwise-summary: 1251
+pairwise: 7462
+sample 1 cross 0.6
+hash-join starting
+generic: 5507
+generic-summary: 61
+pairwise-summary: 1304
+pairwise: 7999
+sample 1 cross 0.7
+hash-join starting
+generic: 5696
+generic-summary: 61
+pairwise-summary: 1350
+pairwise: 8447
+sample 1 cross 0.8
+hash-join starting
+generic: 6022
+generic-summary: 62
+pairwise-summary: 1390
+pairwise: 9063
+sample 1 cross 0.9
+hash-join starting
+generic: 6649
+generic-summary: 63
+pairwise-summary: 1423
+pairwise: 9213
+sample 1 cross 1
+hash-join starting
+generic: 6658
+generic-summary: 56
+pairwise-summary: 1368
+pairwise: 9522
