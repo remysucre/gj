@@ -43,7 +43,7 @@ pub fn community(n: Value, sample: f64, cross: f64) {
         ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Value, _| {
             *result += 1
         });
-        println!("hash-join: {}", now.elapsed().as_millis());
+        println!("generic: {}", now.elapsed().as_millis());
     }
 
     // summary generic join
@@ -60,7 +60,6 @@ pub fn community(n: Value, sample: f64, cross: f64) {
         let (s_y, sks) = (r_x.clone(), rks.clone());
         let (t_x, tks) = build_hash(&es0, |(z, x)| (x, z));
 
-        println!("compressed-join starting");
         let now = Instant::now();
         let ts = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Vec<_>, t| {
             result.push(t);
@@ -82,11 +81,92 @@ pub fn community(n: Value, sample: f64, cross: f64) {
 
             ts_s += ts;
         }
-        println!("compressed-join: {}", now.elapsed().as_millis());
+        println!("generic-summary: {}", now.elapsed().as_millis());
     }
 
     assert_eq!(ts_h, ts_s);
-    println!("{:?}", ts_h);
+
+    // pair-wise summary join
+    {
+        use hashed::HashMap;
+
+        let now = Instant::now();
+        let mut hr = HashMap::default();
+        for (x, y) in &es {
+            let m = hr.entry((x % fac, y % fac)).or_insert_with(Vec::new);
+            m.push((*x, *y));
+        }
+
+        // join on summary
+
+        let mut r_y = HashMap::default();
+        for (x, y) in &es0 {
+            let xs = r_y.entry(y).or_insert_with(Vec::new);
+            xs.push(*x);
+        }
+        let mut xyz = vec![];
+        for (y, z) in &es0 {
+            if let Some(xs) = r_y.get(y) {
+                for x in xs {
+                    xyz.push((*x,*y,*z));
+                }
+            }
+        }
+        let mut rs_xz = HashMap::default();
+        // join with zx
+        for (x, y, z) in xyz {
+            let xys = rs_xz.entry((x, z)).or_insert_with(Vec::new);
+            xys.push(y);
+        }
+        let mut inter = vec![];
+        for (z, x) in &es0 {
+            if let Some(xys) = rs_xz.get(&(*x, *z)) {
+                for y in xys {
+                    inter.push((*x,*y,*z));
+                }
+            }
+        }
+
+        ts_s = 0;
+
+        for (a, b, c) in inter {
+            let r_0 = &hr[&(a, b)];
+            let s_0 = &hr[&(b, c)];
+            let t_0 = &hr[&(c, a)];
+
+            // join r0 s0 t0
+            let mut r0_y = HashMap::default();
+            for (x, y) in r_0 {
+                let xs = r0_y.entry(y).or_insert_with(Vec::new);
+                xs.push(*x);
+            }
+            let mut xyz0 = vec![];
+            for (y, z) in s_0 {
+                if let Some(xs) = r0_y.get(y) {
+                    for x in xs {
+                        xyz0.push((*x,*y,*z));
+                    }
+                }
+            }
+            let mut rs0_xz = HashMap::default();
+        // join with zx
+            for (x, y, z) in xyz0 {
+                let xys = rs0_xz.entry((x, z)).or_insert_with(Vec::new);
+                xys.push(y);
+            }
+
+            for (z, x) in t_0 {
+                if let Some(xys) = rs0_xz.get(&(*x, *z)) {
+                    for y in xys {
+                        ts_s += 1;
+                    }
+                }
+            }
+        }
+        println!("pairwise-summary: {}", now.elapsed().as_millis());
+
+    }
+    assert_eq!(ts_h, ts_s);
 
     // pair-wise hash join
     {
@@ -112,41 +192,18 @@ pub fn community(n: Value, sample: f64, cross: f64) {
             let xys = rs_xz.entry((x, z)).or_insert_with(Vec::new);
             xys.push(y);
         }
-        let mut res = vec![];
+        ts_h = 0;
         for (z, x) in &es {
             if let Some(xys) = rs_xz.get(&(*x, *z)) {
                 for y in xys {
-                    res.push((*x,*y,*z));
+                    ts_h += 1;
                 }
             }
         }
-        // join xzy and zx
-        ts_h = res.len() as Value;
-        println!("hash-join: {}", now.elapsed().as_millis());
+        println!("pairwise: {}", now.elapsed().as_millis());
     }
     assert_eq!(ts_h, ts_s);
 }
-
-fn join<R: Copy, S: Copy> (r: &[(R, Value)], s: &[(Value, S)]) -> Vec<((R, S), Value)> {
-    use hashed::HashMap;
-    let mut r_y = HashMap::default();
-    for (x, y) in r {
-        let xs = r_y.entry(y).or_insert_with(Vec::new);
-        xs.push(*x);
-    }
-
-    let mut res = vec![];
-    for (y, z) in s {
-        if let Some(xs) = r_y.get(y) {
-            for x in xs {
-                res.push(((*x, *z), *y))
-            }
-        }
-    }
-
-    res
-}
-
 
 pub fn compressed(n: Value) {
     // create scale copies of input graph
