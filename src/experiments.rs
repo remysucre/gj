@@ -127,35 +127,33 @@ pub fn community(es0: Vec<(Value, Value)>, sample: f64, cross: f64) {
         ts_s = 0;
 
         for (a, b, c) in inter {
-            let r_0 = &hr[&(a, b)];
-            let s_0 = &hr[&(b, c)];
-            let t_0 = &hr[&(c, a)];
-
-            // join r0 s0 t0
-            let mut r0_y = HashMap::default();
-            for (x, y) in r_0 {
-                let xs = r0_y.entry(y).or_insert_with(Vec::new);
-                xs.push(*x);
-            }
-            let mut xyz0 = vec![];
-            for (y, z) in s_0 {
-                if let Some(xs) = r0_y.get(y) {
-                    for x in xs {
-                        xyz0.push((*x,*y,*z));
+            if let (Some(r_0), Some(s_0), Some(t_0)) = (hr.get(&(a,b)), hr.get(&(b,c)), hr.get(&(c, a))) {
+                // join r0 s0 t0
+                let mut r0_y = HashMap::default();
+                for (x, y) in r_0 {
+                    let xs = r0_y.entry(y).or_insert_with(Vec::new);
+                    xs.push(*x);
+                }
+                let mut xyz0 = vec![];
+                for (y, z) in s_0 {
+                    if let Some(xs) = r0_y.get(y) {
+                        for x in xs {
+                            xyz0.push((*x,*y,*z));
+                        }
                     }
                 }
-            }
-            let mut rs0_xz = HashMap::default();
-        // join with zx
-            for (x, y, z) in xyz0 {
-                let xys = rs0_xz.entry((x, z)).or_insert_with(Vec::new);
-                xys.push(y);
-            }
+                let mut rs0_xz = HashMap::default();
+                // join with zx
+                for (x, y, z) in xyz0 {
+                    let xys = rs0_xz.entry((x, z)).or_insert_with(Vec::new);
+                    xys.push(y);
+                }
 
-            for (z, x) in t_0 {
-                if let Some(xys) = rs0_xz.get(&(*x, *z)) {
-                    for y in xys {
-                        ts_s += 1;
+                for (z, x) in t_0 {
+                    if let Some(xys) = rs0_xz.get(&(*x, *z)) {
+                        for y in xys {
+                            ts_s += 1;
+                        }
                     }
                 }
             }
