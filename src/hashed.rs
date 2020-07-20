@@ -36,6 +36,30 @@ impl<K: Eq + Hash, R> Trie<K, R> for HashMap<K, R> {
     }
 }
 
+fn len(r: &HTrie) -> usize {
+    if let HTrie::Node(m) = r {
+        m.len()
+    } else {
+        panic!("calling len on leaf")
+    }
+}
+
+fn intersect<'a>(r: &'a HTrie, s: &'a HTrie) ->
+    Box<dyn Iterator<Item = (&'a Val, &'a HTrie, &'a HTrie)> + 'a>
+{
+    if let (HTrie::Node(rm), HTrie::Node(sm)) = (r, s) {
+        if rm.len() <= sm.len() {
+            Box::new(rm.iter().filter_map(move |(a, y)| {
+                sm.get(a).map(|z| (a, y, z))
+            }))
+        } else {
+            Box::new(intersect(s, r).map(|(a, x, y)| (a, y, x)))
+        }
+    } else {
+        panic!("intersecting leaves")
+    }
+}
+
 impl<K: Eq + Hash, R> Index for HashMap<K, Vec<R>> {
     type Key = K;
     type Res = R;
@@ -153,4 +177,16 @@ pub fn build_hash<F: Fn((Value, Value)) -> (Value, Value)>(
     }
     let r_keys: HashSet<Value> = r_x.keys().copied().collect();
     (r_x, r_keys)
+}
+
+pub enum HTrie {
+    Leaf,
+    Node(HashMap<Val, HTrie>),
+}
+
+#[derive(Debug, Eq, PartialEq, Hash)]
+pub enum Val {
+    Int(u64),
+    Str(String),
+    Boo(bool),
 }
