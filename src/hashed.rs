@@ -10,6 +10,32 @@ pub type HashSet<V> = std::collections::HashSet<
 use crate::relation::*;
 use crate::util::Value;
 
+impl<K: Eq + Hash, R> Trie<K, R> for HashMap<K, R> {
+    fn create(r: impl Iterator<Item = (K, R)>) -> Self {
+        r.collect()
+    }
+
+    fn intersect<'a, S, T: Trie<K, S>>(&'a self, other: &'a T) ->
+        Box<dyn Iterator<Item = (&'a K, &'a R, &'a S)> + 'a>
+    {
+        if self.len() <= other.len() {
+            Box::new(self.iter().filter_map(move |(a, y)| {
+                other.get(a).map(|z| (a, y, z))
+            }))
+        } else {
+            Box::new(other.intersect(self).map(|(a, x, y)| (a, y, x)))
+        }
+    }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn get<'a>(&'a self, k: &'a K) -> Option<&'a R> {
+        self.get(k)
+    }
+}
+
 impl<K: Eq + Hash, R> Index for HashMap<K, Vec<R>> {
     type Key = K;
     type Res = R;
@@ -74,7 +100,7 @@ fn inter<'a>(x: &'a HashSet<Value>, y: &'a HashSet<Value>) -> std::collections::
 }
 
 // This version takes hash indexes for r, s, t.
-pub fn triangle_index<R: Default, F: Fn(&mut R, (Value, Value, Value))>(
+pub fn triangle_index<R: Default,F: Fn(&mut R, (Value, Value, Value))>(
     r: HashMap<Value, HashSet<Value>>,
     r_keys: HashSet<Value>,
     s: HashMap<Value, HashSet<Value>>,
@@ -104,6 +130,15 @@ pub fn triangle_index<R: Default, F: Fn(&mut R, (Value, Value, Value))>(
     }
     // flame::dump_html(&mut std::fs::File::create("flame-graph.html").unwrap()).unwrap();
     result
+}
+
+pub fn triangle_trie<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
+        r: &'a [(Value, Value)],
+        s: &'a [(Value, Value)],
+        t: &'a [(Value, Value)],
+        agg: F,
+) -> R {
+    triangle_idx::<R, F, HashMap<Value, ()>, HashMap<Value, HashMap<Value, ()>>>(r,s,t,agg)
 }
 
 pub fn build_hash<F: Fn((Value, Value)) -> (Value, Value)>(
