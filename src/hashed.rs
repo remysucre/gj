@@ -232,16 +232,16 @@ impl HTrie {
     }
 }
 
-pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Val, &Val, &Val))>(
-        r: &'a [(Val, Val)],
-        s: &'a [(Val, Val)],
-        t: &'a [(Val, Val)],
+pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
+        r: &'a [(Value, Value)],
+        s: &'a [(Value, Value)],
+        t: &'a [(Value, Value)],
         agg: F,
 ) -> R {
     // first build indexes
-    let r: Vec<_> = r.iter().map(|(x, y)| vec![x.clone(), y.clone()]).collect();
-    let s: Vec<_> = s.iter().map(|(y, z)| vec![y.clone(), z.clone()]).collect();
-    let t: Vec<_> = t.iter().map(|(z, x)| vec![x.clone(), z.clone()]).collect();
+    let r: Vec<_> = r.iter().map(|(x, y)| vec![Val::Int(x.clone()), Val::Int(y.clone())]).collect();
+    let s: Vec<_> = s.iter().map(|(y, z)| vec![Val::Int(y.clone()), Val::Int(z.clone())]).collect();
+    let t: Vec<_> = t.iter().map(|(z, x)| vec![Val::Int(x.clone()), Val::Int(z.clone())]).collect();
     let rx = HTrie::from_iter(r.iter().map(|v| &v[..]));
     let sy = HTrie::from_iter(s.iter().map(|v| &v[..]));
     let tx = HTrie::from_iter(t.iter().map(|v| &v[..]));
@@ -254,7 +254,11 @@ pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Val, &Val, &Val))>(
         for (b, sb_rab) in HTrie::inter_min(&mut vec![&sy, ra]) {
             let sb = sb_rab[0];
             for (c, _sbc_tac) in HTrie::inter_min(&mut vec![sb, ta]) {
-                agg(&mut result, (a, b, c))
+                if let (Val::Int(a), Val::Int(b), Val::Int(c)) = (a,b,c) {
+                    agg(&mut result, (a, b, c))
+                } else {
+                    panic!("type error")
+                }
             }
         }
     }
