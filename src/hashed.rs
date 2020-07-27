@@ -248,6 +248,7 @@ pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
 
     let mut result = R::default();
 
+    println!("Hashjoin starting");
     for (a, ra_ta) in rx.intersect(&vec![&tx]) {
         let ra = ra_ta[0];
         let ta = ra_ta[1];
@@ -262,6 +263,7 @@ pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
             }
         }
     }
+    println!("Hashjoin done");
 
     result
 }
