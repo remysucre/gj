@@ -10,6 +10,8 @@ pub type HashSet<V> = std::collections::HashSet<
 use crate::relation::*;
 use crate::util::Value;
 
+// branched!
+
 impl<K: Eq + Hash, R> Trie<K, R> for HashMap<K, R> {
     fn create(r: impl Iterator<Item = (K, R)>) -> Self {
         r.collect()
