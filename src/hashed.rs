@@ -207,19 +207,18 @@ impl HTrie {
         }
     }
 
-    pub fn inter_min<'a>(ts: &'a mut [&'a HTrie]) ->
+    pub fn inter_min<'a>(ts: &'a [&'a HTrie]) ->
         Box<dyn Iterator<Item = (&'a Val, Vec<&'a HTrie>)> + 'a>
     {
-        ts.sort_by_key(|t| t.len());
-        ts[0].intersect(&ts[1..])
+        ts.iter().min_by_key(|t| t.len()).unwrap().intersect(ts)
     }
 
     pub fn intersect<'a>(&'a self, ts: &'a [&'a HTrie]) ->
         Box<dyn Iterator<Item = (&'a Val, Vec<&'a HTrie>)> + 'a>
     {
         if let HTrie::Node(rm) = self {
-            Box::new(rm.iter().filter_map(move |(a, y)| {
-                let mut children = vec![y];
+            Box::new(rm.iter().filter_map(move |(a, _y)| {
+                let mut children = vec![];
                 for t in ts {
                     let c = t.get(a)?;
                     children.push(c);
@@ -252,12 +251,12 @@ pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
 
     let now = Instant::now();
     println!("Hashjoin starting");
-    for (a, ra_ta) in rx.intersect(&vec![&tx]) {
+    for (a, ra_ta) in HTrie::inter_min(&vec![&rx, &tx]) {
         let ra = ra_ta[0];
         let ta = ra_ta[1];
-        for (b, rab_sb) in ra.intersect(&vec![&sy]) {
+        for (b, rab_sb) in HTrie::inter_min(&vec![ra, &sy]) {
             let sb = rab_sb[1];
-            for (c, _sbc_tac) in sb.intersect(&vec![ta]) {
+            for (c, _sbc_tac) in HTrie::inter_min(&vec![sb, ta]) {
                 if let (Val::Int(a), Val::Int(b), Val::Int(c)) = (a,b,c) {
                     agg(&mut result, (a, b, c))
                 } else {
