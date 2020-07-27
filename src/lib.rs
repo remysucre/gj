@@ -62,6 +62,17 @@ pub mod relation {
         result
     }
 
+    pub trait Rel {
+        type K;
+
+        fn intersect<'a>(&self, rels: &[&'a dyn Rel<K = Self::K>]) ->
+            Box<dyn Iterator<Item = &'a Self::K>>;
+
+        // fn get<'a>(&'a self, k: &'a Self::K) -> Option<&'a dyn Rel>;
+
+        fn len(&self) -> usize;
+    }
+
     // this is really a trie node
     // K is the type of the key
     // R is the type of each child, usually another trie or unit

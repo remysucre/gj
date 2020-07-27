@@ -36,30 +36,6 @@ impl<K: Eq + Hash, R> Trie<K, R> for HashMap<K, R> {
     }
 }
 
-fn len(r: &HTrie) -> usize {
-    if let HTrie::Node(m) = r {
-        m.len()
-    } else {
-        panic!("calling len on leaf")
-    }
-}
-
-fn intersect<'a>(r: &'a HTrie, s: &'a HTrie) ->
-    Box<dyn Iterator<Item = (&'a Val, &'a HTrie, &'a HTrie)> + 'a>
-{
-    if let (HTrie::Node(rm), HTrie::Node(sm)) = (r, s) {
-        if rm.len() <= sm.len() {
-            Box::new(rm.iter().filter_map(move |(a, y)| {
-                sm.get(a).map(|z| (a, y, z))
-            }))
-        } else {
-            Box::new(intersect(s, r).map(|(a, x, y)| (a, y, x)))
-        }
-    } else {
-        panic!("intersecting leaves")
-    }
-}
-
 impl<K: Eq + Hash, R> Index for HashMap<K, Vec<R>> {
     type Key = K;
     type Res = R;
@@ -184,9 +160,77 @@ pub enum HTrie {
     Node(HashMap<Val, HTrie>),
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub enum Val {
     Int(u64),
     Str(String),
     Boo(bool),
+}
+
+impl HTrie {
+
+    pub fn new() -> Self {
+        HTrie::Node(HashMap::default())
+    }
+
+    pub fn add(&mut self, t: &[Val]) {
+        if t.len() == 0 {
+            *self = HTrie::Leaf
+        } else if let HTrie::Node(rm) = self {
+            rm.entry(t[0].clone())
+                .or_insert_with(HTrie::new)
+                .add(&t[1..]);
+        } else {
+            panic!("inserting into leaf")
+        }
+    }
+
+    pub fn from_iter<'a>(ts: impl Iterator<Item = &'a [Val]>) -> Self {
+        let mut r = Self::new();
+        for t in ts { r.add(t) }
+        r
+    }
+
+    pub fn get<'a>(&'a self, k: &Val) -> Option<&'a HTrie> {
+        if let HTrie::Node(rm) = self {
+            rm.get(k)
+        } else {
+            panic!("calling get on leaf")
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        if let HTrie::Node(m) = self {
+            m.len()
+        } else {
+            panic!("calling len on leaf")
+        }
+    }
+
+    pub fn inter_many<'a>(&'a self, ts: &'a [&'a HTrie]) ->
+        Box<dyn Iterator<Item = (&'a Val, Vec<&'a HTrie>)> + 'a>
+    {
+        if let HTrie::Node(rm) = self {
+            Box::new(rm.iter().filter_map(move |(a, y)| {
+                let mut children = vec![y];
+                for t in ts {
+                    let c = t.get(a)?;
+                    children.push(c);
+                }
+                Some((a, children))
+            }))
+        } else {
+            panic!("intersecting leaves")
+        }
+    }
+}
+
+pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
+        r: &'a [(Value, Value)],
+        s: &'a [(Value, Value)],
+        t: &'a [(Value, Value)],
+        agg: F,
+) -> R {
+    // first build indexes
+    todo!()
 }
