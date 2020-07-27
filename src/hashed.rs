@@ -248,12 +248,12 @@ pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
 
     let mut result = R::default();
 
-    for (a, ra_ta) in HTrie::inter_min(&mut vec![&rx, &tx]) {
+    for (a, ra_ta) in rx.intersect(&vec![&tx]) {
         let ra = ra_ta[0];
         let ta = ra_ta[1];
-        for (b, sb_rab) in HTrie::inter_min(&mut vec![&sy, ra]) {
+        for (b, sb_rab) in sy.intersect(&vec![ra]) {
             let sb = sb_rab[0];
-            for (c, _sbc_tac) in HTrie::inter_min(&mut vec![sb, ta]) {
+            for (c, _sbc_tac) in sb.intersect(&vec![ta]) {
                 if let (Val::Int(a), Val::Int(b), Val::Int(c)) = (a,b,c) {
                     agg(&mut result, (a, b, c))
                 } else {

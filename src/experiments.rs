@@ -215,16 +215,20 @@ pub fn live_journal(n: Value) {
     {
         use hashed::*;
 
-        let (r_x, rks) = build_hash(&es, |e| e);
-        let (s_y, sks) = (r_x.clone(), rks.clone());
-        let (t_x, tks) = build_hash(&es, |(z, x)| (x, z));
-
-        println!("hash-join starting");
-        let now = Instant::now();
-        ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Value, _| {
+        ts_h = triangle_ht(&es, &es, &es, |result: &mut Value, _| {
             *result += 1
         });
-        println!("hash-join: {}", now.elapsed().as_millis());
+
+        // let (r_x, rks) = build_hash(&es, |e| e);
+        // let (s_y, sks) = (r_x.clone(), rks.clone());
+        // let (t_x, tks) = build_hash(&es, |(z, x)| (x, z));
+
+        // println!("hash-join starting");
+        // let now = Instant::now();
+        // ts_h = triangle_index(r_x, rks, s_y, sks, t_x, tks, |result: &mut Value, _| {
+        //     *result += 1
+        // });
+        // println!("hash-join: {}", now.elapsed().as_millis());
     }
 
     // Sort-based generic join
