@@ -207,7 +207,14 @@ impl HTrie {
         }
     }
 
-    pub fn inter_many<'a>(&'a self, ts: &'a [&'a HTrie]) ->
+    pub fn inter_min<'a>(ts: &'a mut [&'a HTrie]) ->
+        Box<dyn Iterator<Item = (&'a Val, Vec<&'a HTrie>)> + 'a>
+    {
+        ts.sort_by_key(|t| t.len());
+        ts[0].intersect(&ts[1..])
+    }
+
+    pub fn intersect<'a>(&'a self, ts: &'a [&'a HTrie]) ->
         Box<dyn Iterator<Item = (&'a Val, Vec<&'a HTrie>)> + 'a>
     {
         if let HTrie::Node(rm) = self {
@@ -225,12 +232,32 @@ impl HTrie {
     }
 }
 
-pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
-        r: &'a [(Value, Value)],
-        s: &'a [(Value, Value)],
-        t: &'a [(Value, Value)],
+pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Val, &Val, &Val))>(
+        r: &'a [(Val, Val)],
+        s: &'a [(Val, Val)],
+        t: &'a [(Val, Val)],
         agg: F,
 ) -> R {
     // first build indexes
-    todo!()
+    let r: Vec<_> = r.iter().map(|(x, y)| vec![x.clone(), y.clone()]).collect();
+    let s: Vec<_> = s.iter().map(|(y, z)| vec![y.clone(), z.clone()]).collect();
+    let t: Vec<_> = t.iter().map(|(z, x)| vec![x.clone(), z.clone()]).collect();
+    let rx = HTrie::from_iter(r.iter().map(|v| &v[..]));
+    let sy = HTrie::from_iter(s.iter().map(|v| &v[..]));
+    let tx = HTrie::from_iter(t.iter().map(|v| &v[..]));
+
+    let mut result = R::default();
+
+    for (a, ra_ta) in HTrie::inter_min(&mut vec![&rx, &tx]) {
+        let ra = ra_ta[0];
+        let ta = ra_ta[1];
+        for (b, sb_rab) in HTrie::inter_min(&mut vec![&sy, ra]) {
+            let sb = sb_rab[0];
+            for (c, _sbc_tac) in HTrie::inter_min(&mut vec![sb, ta]) {
+                agg(&mut result, (a, b, c))
+            }
+        }
+    }
+
+    result
 }
