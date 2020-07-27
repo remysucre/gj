@@ -238,6 +238,8 @@ pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
         t: &'a [(Value, Value)],
         agg: F,
 ) -> R {
+    use std::time::Instant;
+
     // first build indexes
     let r: Vec<_> = r.iter().map(|(x, y)| vec![Val::Int(x.clone()), Val::Int(y.clone())]).collect();
     let s: Vec<_> = s.iter().map(|(y, z)| vec![Val::Int(y.clone()), Val::Int(z.clone())]).collect();
@@ -248,6 +250,7 @@ pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
 
     let mut result = R::default();
 
+    let now = Instant::now();
     println!("Hashjoin starting");
     for (a, ra_ta) in rx.intersect(&vec![&tx]) {
         let ra = ra_ta[0];
@@ -263,7 +266,7 @@ pub fn triangle_ht<'a, R: Default, F: Fn(&mut R, (&Value, &Value, &Value))>(
             }
         }
     }
-    println!("Hashjoin done");
+    println!("Hashjoin done {}", now.elapsed().as_millis());
 
     result
 }
