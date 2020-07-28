@@ -77,7 +77,7 @@ impl Trie {
 }
 
 pub fn triangle<'a, R, F>(rx: Trie, sy: Trie, tx: Trie, agg: F) -> R
-where R: Default, F: Fn(&mut R, (&u64, &u64, &u64))
+where R: Default, F: Fn(&mut R, (&Val, &Val, &Val))
 {
     let mut result = R::default();
     for (a, ra_ta) in Trie::inter_min(&vec![&rx, &tx]) {
@@ -86,11 +86,7 @@ where R: Default, F: Fn(&mut R, (&u64, &u64, &u64))
         for (b, rab_sb) in Trie::inter_min(&vec![ra, &sy]) {
             let sb = rab_sb[1];
             for (c, _sbc_tac) in Trie::inter_min(&vec![sb, ta]) {
-                if let (Val::Int(a), Val::Int(b), Val::Int(c)) = (a,b,c) {
-                    agg(&mut result, (a, b, c))
-                } else {
-                    panic!("type error")
-                }
+                agg(&mut result, (a, b, c))
             }
         }
     }
