@@ -12,6 +12,7 @@ rand = "0.7"
 seahash = "4.0"
 ahash = "0.3.8"
 flame = "0.2.2"
+gj_macro = { path = "./gj_macro" }
 
 [profile.release]
 debug = true

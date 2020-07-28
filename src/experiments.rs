@@ -2,6 +2,8 @@ use std::time::Instant;
 use crate::{util::*, *};
 use trie::*;
 
+use gj_macro::*;
+
 //---------------
 // Triangle query
 //---------------
@@ -21,7 +23,7 @@ pub fn live_journal(n: u64) {
     println!("done in {}", now.elapsed().as_millis());
 }
 
-pub fn triangle<'a, R, F>(rx: Trie, sy: Trie, tx: Trie, agg: F) -> R
+pub fn triangle<R, F>(rx: Trie, sy: Trie, tx: Trie, agg: F) -> R
 where R: Default, F: Fn(&mut R, (&Val, &Val, &Val))
 {
     let mut result = R::default();
@@ -41,6 +43,61 @@ where R: Default, F: Fn(&mut R, (&Val, &Val, &Val))
 //-----------------
 // Building a query
 //-----------------
+
+// SELECT MIN(mc.note) AS production_note,
+//        MIN(t.title) AS movie_title,
+//        MIN(t.production_year) AS movie_year
+// FROM company_type AS ct,
+//      info_type AS it,
+//      movie_companies AS mc,
+//      movie_info_idx AS mi_idx,
+//      title AS t
+// WHERE ct.kind = 'production companies'
+//   AND it.info = 'top 250 rank'
+//   AND mc.note NOT LIKE '%(as Metro-Goldwyn-Mayer Pictures)%'
+//   AND (mc.note LIKE '%(co-production)%'
+//        OR mc.note LIKE '%(presents)%')
+//
+//   AND ct.id = mc.company_type_id
+//   AND t.id = mc.movie_id
+//   AND t.id = mi_idx.movie_id
+//   AND mc.movie_id = mi_idx.movie_id
+//   AND it.id = mi_idx.info_type_id;
+//
+// JOINED ATTRIBUTES
+// ct.id mc.company_type_id
+// t.id mc.movie_id mi_idx.movie_id
+// it.id mi_idx.info_type_id
+
+// may also want output aggs to determine variable order
+// FROM clause determine arguments
+pub fn query<R, F>(
+    ct: &Trie, it: &Trie, mc: &Trie, mi_idx: &Trie, t: &Trie,
+    agg: F
+) -> R
+// output aggregates determine # of args to F
+where R: Default, F: Fn(&mut R, &[&Trie])
+{
+    let mut result = R::default();
+    for (_a, ct__mcX) in Trie::inter_min(&vec![ct, mc]) {
+        let _ct_a = ct__mcX[0];
+        let mc_a = ct__mcX[0];
+        for (_b, t__mc_a__mi_idxY) in Trie::inter_min(&vec![t, mc_a, mi_idx]) {
+            let t_b = t__mc_a__mi_idxY[0];
+            let mc_ab = t__mc_a__mi_idxY[1];
+            let mi_idx_b = t__mc_a__mi_idxY[2];
+            for (_c, it__mi_idxZ) in Trie::inter_min(&vec![it, mi_idx_b]) {
+                // output aggregates, hopefully it doesn't need the join attrs
+                agg(&mut result, &vec![mc_ab, t_b])
+            }
+        }
+    }
+    result
+}
+
+pub fn try_macro() {
+    sql!("lol");
+}
 
 // 1. Decide on variable order
 // 2. Build tries on each relation according to variable order

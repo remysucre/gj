@@ -245,8 +245,17 @@ dependencies = [
  "criterion",
  "csv",
  "flame",
+ "gj_macro",
  "rand",
  "seahash",
+]
+
+[[package]]
+name = "gj_macro"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
