@@ -75,20 +75,3 @@ impl Trie {
         }
     }
 }
-
-pub fn triangle<'a, R, F>(rx: Trie, sy: Trie, tx: Trie, agg: F) -> R
-where R: Default, F: Fn(&mut R, (&Val, &Val, &Val))
-{
-    let mut result = R::default();
-    for (a, ra_ta) in Trie::inter_min(&vec![&rx, &tx]) {
-        let ra = ra_ta[0];
-        let ta = ra_ta[1];
-        for (b, rab_sb) in Trie::inter_min(&vec![ra, &sy]) {
-            let sb = rab_sb[1];
-            for (c, _sbc_tac) in Trie::inter_min(&vec![sb, ta]) {
-                agg(&mut result, (a, b, c))
-            }
-        }
-    }
-    result
-}
