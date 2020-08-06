@@ -5,7 +5,115 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 
-use gj_macro::*;
+//------------------
+// Hash summary join
+//------------------
+pub fn community(es0: Vec<Vec<u64>>, sample: f64, cross: f64) {
+    // use rand::prelude::*;
+    // create scale copies of input graph
+    // let es0 = read_edges(n as usize).unwrap();
+    let mut fac = 0;
+    for xy in es0.iter() {
+        fac = std::cmp::max(fac, std::cmp::max(xy[0], xy[1]));
+    }
+    let g0: Vec<_> = es0.iter().map(|xy| vec![Val::Int(xy[0]), Val::Int(xy[1])]).collect();
+    let g0_r: Vec<_> = g0.iter().map(|xy| vec![xy[1].clone(), xy[0].clone()]).collect();
+
+    let rx0 = Trie::from_iter(g0.iter().map(|v| v.as_slice()));
+    let sy0 = Trie::from_iter(g0.iter().map(|v| v.as_slice()));
+    let tx0 = Trie::from_iter(g0_r.iter().map(|v| v.as_slice()));
+
+    // NOTE breaks if scale too large due to overflow
+    let scale = 100;
+    let mut g = vec![];
+    for i in 0..scale {
+        for xy in es0.iter() {
+            if rand::random::<f64>() < sample {
+                g.push(
+                    vec![Val::Int(xy[0] + i * fac),
+                         Val::Int(xy[1] + i * fac + fac)]
+                );
+                if rand::random::<f64>() < cross {
+                    g.push(
+                        vec![Val::Int(xy[0] + i * fac),
+                             Val::Int(xy[1] + i * fac + fac)]
+                    );
+                }
+            }
+        }
+    }
+    let g_r: Vec<_> = g.iter().map(|xy| vec![xy[1].clone(), xy[0].clone()]).collect();
+
+    let rx = Trie::from_iter(g.iter().map(|v| v.as_slice()));
+    let sy = Trie::from_iter(g.iter().map(|v| v.as_slice()));
+    let tx = Trie::from_iter(g_r.iter().map(|v| v.as_slice()));
+
+    let ts_h;
+    let mut ts_s = 0;
+
+    // Hash-based generic join
+    {
+
+        println!("hash-join starting");
+        let now = Instant::now();
+        ts_h = triangle(&rx, &sy, &tx, |result: &mut u64, _| {
+            *result += 1
+        });
+        println!("generic: {}", now.elapsed().as_millis());
+    }
+
+    // summary generic join
+    {
+        let mut hr = HashMap::default();
+
+        for xy in g.iter() {
+            if let (Val::Int(x), Val::Int(y)) = (&xy[0], &xy[1]) {
+                let m = hr.entry((x / fac, y / fac)).or_insert_with(Trie::new);
+                m.add(&vec![Val::Int(*x), Val::Int(*y)])
+            } else {
+                unreachable!()
+            }
+        }
+
+        let mut hr_r = HashMap::default();
+
+        for xy in g.iter() {
+            if let (Val::Int(x), Val::Int(y)) = (&xy[0], &xy[1]) {
+                let m = hr_r.entry((x / fac, y / fac)).or_insert_with(Trie::new);
+                m.add(&vec![Val::Int(*y), Val::Int(*x)])
+            } else {
+                unreachable!()
+            }
+        }
+        // //let (r_x, rks) = build_hash(&es0, |e| e);
+        // let r_x = Trie::from_iter(es0.iter());
+        // let (s_y, sks) = (r_x.clone(), rks.clone());
+        // let (t_x, tks) = build_hash(&es0, |(z, x)| (x, z));
+
+        let now = Instant::now();
+        let ts = triangle(&rx0, &sy0, &tx0, |result: &mut Vec<_>, (a, b, c)| {
+            if let (Val::Int(a), Val::Int(b), Val::Int(c)) = (a, b, c) {
+                result.push((*a, *b, *c));
+            } else {
+                unreachable!()
+            }
+        });
+
+        for (a, b, c) in ts {
+            if let (Some(r_0), Some(s_0), Some(t_0)) = (hr.get(&(a,b)), hr.get(&(b,c)), hr_r.get(&(c, a))) {
+
+                let ts = triangle(r_0, s_0, t_0, |result: &mut u64, _| {
+                    *result += 1;
+                });
+
+                ts_s += ts;
+            }
+        }
+        println!("generic-summary: {}", now.elapsed().as_millis());
+    }
+
+    assert_eq!(ts_h, ts_s);
+}
 
 //----------
 // Summaries
