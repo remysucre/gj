@@ -8,10 +8,11 @@ use std::io::prelude::*;
 //------------------
 // Hash summary join
 //------------------
-pub fn community(es0: Vec<Vec<u64>>, sample: f64, cross: f64) {
+pub fn community(n: usize, sample: f64, cross: f64) {
     // use rand::prelude::*;
     // create scale copies of input graph
-    // let es0 = read_edges(n as usize).unwrap();
+    let es0 = read_es(n).unwrap();
+    let es0: Vec<_> = es0.into_iter().map(|xy| if let (Val::Int(x), Val::Int(y)) = (&xy[0], &xy[1]) { vec![*x,*y] } else {unreachable!()}).collect();
     let mut fac = 0;
     for xy in es0.iter() {
         fac = std::cmp::max(fac, std::cmp::max(xy[0], xy[1]));
