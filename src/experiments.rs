@@ -20,6 +20,7 @@ pub fn lj_sum(n: u64) {
     file.read_to_string(&mut contents).unwrap();
     let parts: Vec<Vec<u64>> = contents.lines().map(|l| l.split_whitespace().map(|n| n.parse().unwrap()).collect()).collect();
     // homomorphism maps each vertex to its cluster
+    println!("reading homs");
     let mut hom: HashMap<Val, Val> = HashMap::default();
     for part in parts {
         let c = part[0];
@@ -40,19 +41,33 @@ pub fn lj_sum(n: u64) {
         let srcs = moh.entry(xy_).or_insert_with(Trie::new);
         srcs.add(xy);
     }
+    let mut moh_r: HashMap<(&Val, &Val), Trie> = HashMap::default();
+    for xy in es.iter() {
+        let x = &xy[0];
+        let y = &xy[1];
+        let xy_ = (&hom[x], &hom[y]);
+        let yx = vec![y.clone(), x.clone()];
+        let srcs = moh_r.entry(xy_).or_insert_with(Trie::new);
+        srcs.add(&yx);
+    }
 
+    println!("building tries");
     let rx_ = Trie::from_iter(g_sum.iter().map(|v| v.as_slice()));
     let sy_ = Trie::from_iter(g_sum.iter().map(|v| v.as_slice()));
     let tx_ = Trie::from_iter(g_sum_r.iter().map(|v| v.as_slice()));
 
-    triangle(&rx_, &sy_, &tx_, |result: &mut u64, (a, b, c)| {
+    println!("generic join starting");
+    let now = Instant::now();
+    let result = triangle(&rx_, &sy_, &tx_, |result: &mut u64, (a, b, c)| {
         // perform local join
         let r = &moh[&(a, b)];
         let s = &moh[&(b, c)];
-        let t = &moh[&(a, c)];
+        let t = &moh_r[&(c, a)];
 
         *result += triangle(r, s, t, |r: &mut u64, _| *r += 1 );
     });
+    println!("{}", result);
+    println!("done in {}", now.elapsed().as_millis());
 }
 
 //---------------
@@ -68,9 +83,10 @@ pub fn live_journal(n: u64) {
 
     println!("generic join starting");
     let now = Instant::now();
-    triangle(&rx, &sy, &tx, |result: &mut u64, _| {
+    let result = triangle(&rx, &sy, &tx, |result: &mut u64, _| {
         *result += 1
     });
+    println!("{}", result);
     println!("done in {}", now.elapsed().as_millis());
 }
 
@@ -144,10 +160,6 @@ where R: Default, F: Fn(&mut R, &[&Trie])
         }
     }
     result
-}
-
-pub fn try_macro() {
-    sql!("lol");
 }
 
 // 1. Decide on variable order

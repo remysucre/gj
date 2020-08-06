@@ -2,10 +2,10 @@ use gj::experiments::*;
 // use gj::util::*;
 
 fn main() {
-    try_macro()
+    //lj_sum(68993773);
 
     //let args: Vec<String> = std::env::args().collect();
     //let n: usize = args[1].parse().unwrap();
 
-    //live_journal(n as u64)
+    live_journal(68993773);
 }
