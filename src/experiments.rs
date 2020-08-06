@@ -1,8 +1,59 @@
 use std::time::Instant;
 use crate::{util::*, *};
 use trie::*;
+use std::env;
+use std::fs::File;
+use std::io::prelude::*;
 
 use gj_macro::*;
+
+//----------
+// Summaries
+//----------
+pub fn lj_sum(n: u64) {
+    let es = read_es(n as usize).unwrap();
+
+    let args: Vec<String> = env::args().collect();
+    let f = &args[1];
+    let mut file = File::open(f).unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let parts: Vec<Vec<u64>> = contents.lines().map(|l| l.split_whitespace().map(|n| n.parse().unwrap()).collect()).collect();
+    // homomorphism maps each vertex to its cluster
+    let mut hom: HashMap<Val, Val> = HashMap::default();
+    for part in parts {
+        let c = part[0];
+        for v in &part[1..] {
+            hom.insert(Val::Int(*v), Val::Int(c));
+        }
+    }
+
+    // compute summary graph hom(es)
+    let g_sum: HashSet<_> = es.iter().map(|xy| vec![hom[&xy[0]].clone(), hom[&xy[1]].clone()]).collect();
+    let g_sum_r: HashSet<_> = g_sum.iter().map(|v| vec![v[1].clone(), v[0].clone()]).collect();
+    // compute reverse mapping from summary to (tries of) edges
+    let mut moh: HashMap<(&Val, &Val), Trie> = HashMap::default();
+    for xy in es.iter() {
+        let x = &xy[0];
+        let y = &xy[1];
+        let xy_ = (&hom[x], &hom[y]);
+        let srcs = moh.entry(xy_).or_insert_with(Trie::new);
+        srcs.add(xy);
+    }
+
+    let rx_ = Trie::from_iter(g_sum.iter().map(|v| v.as_slice()));
+    let sy_ = Trie::from_iter(g_sum.iter().map(|v| v.as_slice()));
+    let tx_ = Trie::from_iter(g_sum_r.iter().map(|v| v.as_slice()));
+
+    triangle(&rx_, &sy_, &tx_, |result: &mut u64, (a, b, c)| {
+        // perform local join
+        let r = &moh[&(a, b)];
+        let s = &moh[&(b, c)];
+        let t = &moh[&(a, c)];
+
+        *result += triangle(r, s, t, |r: &mut u64, _| *r += 1 );
+    });
+}
 
 //---------------
 // Triangle query
@@ -17,20 +68,20 @@ pub fn live_journal(n: u64) {
 
     println!("generic join starting");
     let now = Instant::now();
-    triangle(rx, sy, tx, |result: &mut u64, _| {
+    triangle(&rx, &sy, &tx, |result: &mut u64, _| {
         *result += 1
     });
     println!("done in {}", now.elapsed().as_millis());
 }
 
-pub fn triangle<R, F>(rx: Trie, sy: Trie, tx: Trie, agg: F) -> R
+pub fn triangle<R, F>(rx: &Trie, sy: &Trie, tx: &Trie, agg: F) -> R
 where R: Default, F: Fn(&mut R, (&Val, &Val, &Val))
 {
     let mut result = R::default();
-    for (a, ra_ta) in Trie::inter_min(&vec![&rx, &tx]) {
+    for (a, ra_ta) in Trie::inter_min(&vec![rx, tx]) {
         let ra = ra_ta[0];
         let ta = ra_ta[1];
-        for (b, rab_sb) in Trie::inter_min(&vec![ra, &sy]) {
+        for (b, rab_sb) in Trie::inter_min(&vec![ra, sy]) {
             let sb = rab_sb[1];
             for (c, _sbc_tac) in Trie::inter_min(&vec![sb, ta]) {
                 agg(&mut result, (a, b, c))
@@ -79,14 +130,14 @@ pub fn query<R, F>(
 where R: Default, F: Fn(&mut R, &[&Trie])
 {
     let mut result = R::default();
-    for (_a, ct__mcX) in Trie::inter_min(&vec![ct, mc]) {
-        let _ct_a = ct__mcX[0];
-        let mc_a = ct__mcX[0];
-        for (_b, t__mc_a__mi_idxY) in Trie::inter_min(&vec![t, mc_a, mi_idx]) {
-            let t_b = t__mc_a__mi_idxY[0];
-            let mc_ab = t__mc_a__mi_idxY[1];
-            let mi_idx_b = t__mc_a__mi_idxY[2];
-            for (_c, it__mi_idxZ) in Trie::inter_min(&vec![it, mi_idx_b]) {
+    for (_a, ct_mc_x) in Trie::inter_min(&vec![ct, mc]) {
+        let _ct_a = ct_mc_x[0];
+        let mc_a = ct_mc_x[0];
+        for (_b, t_mc_a_mi_idx_yt) in Trie::inter_min(&vec![t, mc_a, mi_idx]) {
+            let t_b = t_mc_a_mi_idx_yt[0];
+            let mc_ab = t_mc_a_mi_idx_yt[1];
+            let mi_idx_b = t_mc_a_mi_idx_yt[2];
+            for (_c, _it_mi_idx_z) in Trie::inter_min(&vec![it, mi_idx_b]) {
                 // output aggregates, hopefully it doesn't need the join attrs
                 agg(&mut result, &vec![mc_ab, t_b])
             }
