@@ -23,11 +23,14 @@ pub fn lj_sum(n: u64) {
     println!("reading homs");
     let mut hom: HashMap<Val, Val> = HashMap::default();
     for part in parts {
-        let c = part[0];
-        for v in &part[1..] {
-            hom.insert(Val::Int(*v), Val::Int(c));
-        }
+      hom.insert(Val::Int(part[0]), Val::Int(part[1]));
     }
+    // for part in parts {
+    //     let c = part[0];
+    //     for v in &part[1..] {
+    //         hom.insert(Val::Int(*v), Val::Int(c));
+    //     }
+    // }
 
     // compute summary graph hom(es)
     let g_sum: HashSet<_> = es.iter().map(|xy| vec![hom[&xy[0]].clone(), hom[&xy[1]].clone()]).collect();
