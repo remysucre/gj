@@ -131,15 +131,15 @@ pub fn lj_sum(n: u64) {
     // homomorphism maps each vertex to its cluster
     println!("reading homs");
     let mut hom: HashMap<Val, Val> = HashMap::default();
-    for part in parts {
-      hom.insert(Val::Int(part[0]), Val::Int(part[1]));
-    }
     // for part in parts {
-    //     let c = part[0];
-    //     for v in &part[1..] {
-    //         hom.insert(Val::Int(*v), Val::Int(c));
-    //     }
+    //   hom.insert(Val::Int(part[0]), Val::Int(part[1]));
     // }
+    for part in parts {
+        let c = part[0];
+        for v in &part[1..] {
+            hom.insert(Val::Int(*v), Val::Int(c));
+        }
+    }
 
     // compute summary graph hom(es)
     let g_sum: HashSet<_> = es.iter().map(|xy| vec![hom[&xy[0]].clone(), hom[&xy[1]].clone()]).collect();
@@ -163,18 +163,34 @@ pub fn lj_sum(n: u64) {
         srcs.add(&yx);
     }
 
+    let now = Instant::now();
     println!("building tries");
     let rx_ = Trie::from_iter(g_sum.iter().map(|v| v.as_slice()));
     let sy_ = Trie::from_iter(g_sum.iter().map(|v| v.as_slice()));
     let tx_ = Trie::from_iter(g_sum_r.iter().map(|v| v.as_slice()));
+    println!("done in {}", now.elapsed().as_millis());
+    println!("{:?}", (rx_.len(), sy_.len(), tx_.len()));
 
     println!("generic join starting");
     let now = Instant::now();
     let result = triangle(&rx_, &sy_, &tx_, |result: &mut u64, (a, b, c)| {
         // perform local join
-        let r = &moh[&(a, b)];
-        let s = &moh[&(b, c)];
-        let t = &moh_r[&(c, a)];
+        let (r, s, t);
+        if b == c {
+          r = &moh[&(a, b)];
+          s = &moh[&(b, c)];
+          t = &moh_r[&(c, a)];
+        } else if a == c {
+          // b, a, c
+          r = &moh[&(b, c)];
+          s = &moh[&(c, a)];
+          t = &moh_r[&(a, b)];
+        } else {
+          // b, a, c
+          r = &moh[&(c, a)];
+          s = &moh[&(a, b)];
+          t = &moh_r[&(b, c)];
+        }
 
         *result += triangle(r, s, t, |r: &mut u64, _| *r += 1 );
     });
